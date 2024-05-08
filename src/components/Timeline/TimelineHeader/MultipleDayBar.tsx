@@ -1,10 +1,14 @@
 import times from 'lodash/times';
 import moment from 'moment-timezone';
 import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View, Dimensions} from 'react-native';
 import { COLUMNS, DEFAULT_PROPS } from '../../../constants';
 import type { DayBarItemProps } from '../../../types';
 import { getDayBarStyle } from '../../../utils';
+
+
+export const SCREEN_WIDTH = Dimensions.get("window").width;
+export const SCREEN_HEIGHT = Dimensions.get("window").height;
 
 const MultipleDayBar = ({
   width,
@@ -23,40 +27,82 @@ const MultipleDayBar = ({
     const dateStr = dateByIndex.format('YYYY-MM-DD');
     const [dayNameText, dayNum] = dateByIndex
       .locale(locale)
-      .format('ddd,DD')
+      .format('dd,D')
       .split(',');
-    const highlightDate = highlightDates?.[dateStr];
+    // const highlightDate = highlightDates?.[dateStr];
+    
 
     const { dayName, dayNumber, dayNumberContainer } = getDayBarStyle(
       currentDate,
       dateByIndex,
       theme,
-      highlightDate
+      // highlightDate
     );
+
+	const Dots = ({ date }) => {
+    let obj = {};
+		highlightDates.map((i) => {
+			obj = {
+				...obj,
+				[i.date]: i.count,
+			};
+		});
+		const count = obj[`${date}`];
+		const overlapArr = (() => {
+			if (count === null || count === undefined) {
+				return [];
+			} else if (count >= 1 && count <= 2) {
+				return [1];
+			} else if (count >= 3 && count <= 5) {
+				return [1, 2];
+			} else {
+				return [1, 2, 3];
+			}
+		})();
+		const getColor = (count, index) => {
+			switch (count) {
+				case 0:
+					return "#F06D76"
+				case 1:
+					return '#56CCF2';
+				default:
+					return index % 2 === 0 ? "#F06D76" : '#56CCF2';
+			}
+		};
+		return (
+			<View style={styles.dotView}>
+				{overlapArr?.map((ele, index) => (
+					<View style={{ width: 4, height: 4, borderRadius: 2, backgroundColor: getColor(count, index), marginHorizontal: index === highlightDates?.length - 1 || index === 4 ? 0 : 2, }} />
+				))}
+			</View>
+		);
+	};
 
     return (
       <View
         key={`${startDate}_${dayIndex}`}
         style={[styles.dayItem, { width: columnWidth }]}
       >
-        <Text
+        
+        <TouchableOpacity
+          activeOpacity={1}
+          disabled={!onPressDayNum}
+          onPress={() => onPressDayNum?.(dateStr)}
+          style={[styles.dayNumBtn, dayNumberContainer]}
+        >
+          <Text
           allowFontScaling={theme.allowFontScaling}
           style={[styles.dayName, dayName]}
         >
           {dayNameText}
         </Text>
-        <TouchableOpacity
-          activeOpacity={0.6}
-          disabled={!onPressDayNum}
-          onPress={() => onPressDayNum?.(dateStr)}
-          style={[styles.dayNumBtn, dayNumberContainer]}
-        >
           <Text
             allowFontScaling={theme.allowFontScaling}
             style={[styles.dayNumber, dayNumber]}
           >
             {dayNum}
           </Text>
+          <Dots date={dateStr} />
         </TouchableOpacity>
       </View>
     );
@@ -85,12 +131,18 @@ const styles = StyleSheet.create({
   dayNumBtn: {
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 2,
-    borderRadius: 14,
-    width: 28,
-    height: 28,
+    borderRadius: 10,
+    height: (SCREEN_WIDTH - 88) / 7,
+    width: (SCREEN_WIDTH - 88) / 7,
     backgroundColor: DEFAULT_PROPS.WHITE_COLOR,
   },
-  dayName: { color: DEFAULT_PROPS.SECONDARY_COLOR, fontSize: 12 },
-  dayNumber: { color: DEFAULT_PROPS.SECONDARY_COLOR, fontSize: 16 },
+  dayName: { color: DEFAULT_PROPS.SECONDARY_COLOR, fontSize: 10 },
+  dayNumber: { color: DEFAULT_PROPS.SECONDARY_COLOR, fontSize: 14, fontWeight: 'bold' },
+  dotView: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    height: 4,
+    width: "100%",
+  },
 });
