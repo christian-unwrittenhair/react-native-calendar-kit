@@ -42,7 +42,7 @@ const styles = StyleSheet.create({
   },
 });
 
-const Dots = ({ date, highlightDates }) => {
+const Dots = ({ date, highlightDates }: any) => {
   const dotElements = useMemo(() => {
     const count = highlightDates[date]?.count || 0;
     const dotArray = Array.from({ length: Math.min(3, Math.floor(count / 2) + 1) }, (_, i) => (
