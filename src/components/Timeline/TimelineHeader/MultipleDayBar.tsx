@@ -8,8 +8,8 @@ import { getDayBarStyle } from '../../../utils';
 
 export const SCREEN_WIDTH = Dimensions.get("window").width;
 
-const Dots = ({ date, highlightDates }) => {
-  const count = highlightDates.reduce((acc, curr) => ({
+const Dots = ({ date, highlightDates }: any) => {
+  const count = highlightDates.reduce((acc: any, curr: { date: any; count: any; }) => ({
     ...acc,
     [curr.date]: curr.count,
   }), {})[date];
@@ -26,7 +26,7 @@ const Dots = ({ date, highlightDates }) => {
     }
   })();
 
-  const getColor = (count, index) => {
+  const getColor = (count: any, index: number) => {
     switch (count) {
       case 0:
         return "#F06D76";
@@ -39,7 +39,7 @@ const Dots = ({ date, highlightDates }) => {
 
   return (
     <View style={styles.dotView}>
-      {overlapArr.map((ele, index) => (
+      {overlapArr.map((_ele, index) => (
         <View key={index} style={{ width: 4, height: 4, borderRadius: 2, backgroundColor: getColor(count, index), marginHorizontal: index === highlightDates.length - 1 || index === 4 ? 0 : 2 }} />
       ))}
     </View>
