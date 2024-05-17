@@ -65,7 +65,7 @@ const useDragCreateGesture = ({ onDragCreateEnd }: useDragCreateGesture) => {
     const positionIndex = Math.floor((xPosition - hourWidth) / columnWidth);
     const calcX = positionIndex * columnWidth;
 
-    const startY = yPosition + offsetY.value - spaceFromTop;
+    const startY = yPosition + offsetY.value + 64;
     const subtractHour = (dragCreateInterval / 60) * heightByTimeInterval.value;
     const originalTime = (startY - subtractHour) / heightByTimeInterval.value;
     const roundedHour = roundTo(originalTime, nearestMinutes, 'up');
