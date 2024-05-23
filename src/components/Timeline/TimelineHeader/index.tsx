@@ -1,6 +1,6 @@
 import { AnimatedFlashList, ListRenderItemInfo } from '@shopify/flash-list';
 import React, { useMemo, useRef, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, View, Animated as RNAnimated, NativeSyntheticEvent, NativeScrollEvent } from 'react-native';
 import { runOnJS, useAnimatedReaction } from 'react-native-reanimated';
 import { DEFAULT_PROPS } from '../../../constants';
 import { useTimelineCalendarContext } from '../../../context/TimelineProvider';
@@ -38,7 +38,28 @@ const TimelineHeader = ({
     locale,
     tzOffset,
     currentDate,
+    timelineHorizontalListRef,
   } = useTimelineCalendarContext();
+
+   const _onHorizontalScroll = RNAnimated.event(
+    [{ nativeEvent: { contentOffset: { x: scrollX } } }],
+    {
+      useNativeDriver: true,
+      listener: (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+        const x = e.nativeEvent.contentOffset.x;
+        const width = e.nativeEvent.layoutMeasurement.width;
+        const pageIndex = Math.round(x / width);
+        if (currentIndex.value !== pageIndex) {
+          currentIndex.value = pageIndex;
+          timelineHorizontalListRef.current?.scrollToIndex({
+            index: pageIndex,
+            animated: true,
+          })
+        }
+        
+      },
+    }
+  );
 
   const [startDate, setStartDate] = useState(
     pages[viewMode].data[pages[viewMode].index] || ''
@@ -105,7 +126,7 @@ const TimelineHeader = ({
     const listProps = {
       ref: dayBarListRef,
       keyExtractor: (item: string) => item,
-      scrollEnabled: false,
+      scrollEnabled: true,
       disableHorizontalListHeightMeasurement: true,
       showsHorizontalScrollIndicator: false,
       horizontal: true,
@@ -113,6 +134,7 @@ const TimelineHeader = ({
       scrollEventThrottle: 16,
       pagingEnabled: true,
       extraData: extraValues,
+      onScroll: _onHorizontalScroll,
     };
 
     if (viewMode === 'day') {
