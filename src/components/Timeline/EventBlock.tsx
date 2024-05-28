@@ -81,7 +81,7 @@ const EventBlock = ({
     }
 
     return {
-      top: withTiming(event.startHour * heightByTimeInterval.value, {
+      top: withTiming(event.top, {
         duration: eventAnimatedDuration,
       }),
       height: withTiming(eventHeight, {
@@ -119,13 +119,16 @@ const EventBlock = ({
       ]}
     >
       <TouchableOpacity
-        disabled={!!selectedEventId}
+        disabled
         delayLongPress={300}
         onPress={_onPress}
         onLongPress={_onLongPress}
         style={[
           StyleSheet.absoluteFill,
-          { backgroundColor: event.color || EVENT_DEFAULT_COLOR },
+          { 
+            backgroundColor: event.color || EVENT_DEFAULT_COLOR,
+            opacity: 0.3 
+          },
         ]}
         activeOpacity={0.6}
       >
