@@ -363,6 +363,7 @@ const DragEditItem = ({
               {renderEventContent
                 ? renderEventContent(event, heightByTimeInterval)
                 : _renderEventContent()}
+                {/* NOTE: comment for now instead of removing
                 <GestureDetector gesture={dragDurationGesture}>
                   <View style={styles.indicatorContainer}>
                     {EditIndicatorComponent ? (
@@ -388,7 +389,7 @@ const DragEditItem = ({
                       </View>
                     )}
                   </View>
-                </GestureDetector>
+                  </GestureDetector>*/}
           </Animated.View>
         </GestureDetector>
       </TouchableOpacity>
