@@ -19,6 +19,7 @@ import NowIndicator from './NowIndicator';
 import TimelineBoard from './TimelineBoard';
 import TimelineHours from './TimelineHours';
 import DragEditItem from './DragEditItem';
+import EventBlock from './EventBlock';
 
 interface TimelinePageProps {
   startDate: string;
@@ -162,7 +163,6 @@ const TimelinePage = ({
         dayIndex={dayIndex}
         onEndDragSelectedEvent={onEndDragSelectedEvent}
         isEnabled={isEnabled}
-        EditIndicatorComponent={EditIndicatorComponent}
         renderEventContent={renderSelectedEventContent || renderEventContent}
         onPressEvent={onPressEvent}
       />

@@ -27,7 +27,6 @@ interface DragEditItemProps {
     heightByTimeInterval: SharedValue<number>
   ) => JSX.Element;
   isEnabled?: boolean; //TODO: remove in the future in favor of isDragEnabled internal state
-  EditIndicatorComponent?: JSX.Element;
   onPressEvent?: (eventItem: PackedEvent) => void;
 }
 
@@ -39,7 +38,6 @@ const DragEditItem = ({
   onEndDragSelectedEvent,
   renderEventContent,
   isEnabled = true,
-  EditIndicatorComponent,
   onPressEvent
 }: DragEditItemProps) => {
   const {
@@ -265,41 +263,9 @@ const DragEditItem = ({
       runOnJS(clearCurrentInterval)();
     });
 
-  const startHeight = useSharedValue(0);
-
-  const dragDurationGesture = Gesture.Pan()
-    .enabled(isEnabled)
-    .runOnJS(true)
-    .maxPointers(1)
-    .onStart(() => {
-      startOffsetY.value = offsetY.value;
-      startHeight.value = eventHeight.value;
-    })
-    .onUpdate((e) => {
-      const heightOfTenMinutes = (dragStep / 60) * heightByTimeInterval.value;
-      const nextHeight = startHeight.value + e.translationY;
-      const roundedHeight =
-        Math.ceil(nextHeight / heightOfTenMinutes) * heightOfTenMinutes;
-      const clampedHeight = Math.max(roundedHeight, heightOfTenMinutes);
-      const isSameHeight = eventHeight.value === clampedHeight;
-      if (!isSameHeight) {
-        eventHeight.value = clampedHeight;
-        if (useHaptic) {
-          runOnJS(triggerHaptic)();
-        }
-      }
-    })
-    .onEnd(() => {
-      runOnJS(recalculateEvent)();
-    })
-    .onTouchesUp(() => {
-      runOnJS(clearCurrentInterval)();
-    });
-
   const animatedStyle = useAnimatedStyle(() => {
     return {
       height: eventHeight.value,
-      width: eventWidth.value,
       left: eventLeft.value,
       top: eventTop.value,
       transform: [{ translateX: translateX.value }],
@@ -328,13 +294,14 @@ const DragEditItem = ({
   }
 
   return (
-    <View style={[StyleSheet.absoluteFill]} pointerEvents="box-none">
+    <View style={[StyleSheet.absoluteFill, {left: event.left + columnWidth * dayIndex}]} pointerEvents="box-none">
       {isDragEnabled &&
         <EventBlock
           key={event.id}
           event={{
             ...event,
-            top: eventTop.value
+            top: eventTop.value,
+            left: 0
           }}
           dayIndex={dayIndex}
           columnWidth={columnWidth}
@@ -355,6 +322,7 @@ const DragEditItem = ({
               {
                 backgroundColor: event.color ? event.color : EVENT_DEFAULT_COLOR,
                 top: defaultTopPosition,
+                width: event.width
               },
               event.containerStyle,
               animatedStyle,
@@ -363,33 +331,6 @@ const DragEditItem = ({
               {renderEventContent
                 ? renderEventContent(event, heightByTimeInterval)
                 : _renderEventContent()}
-                {/* NOTE: comment for now instead of removing
-                <GestureDetector gesture={dragDurationGesture}>
-                  <View style={styles.indicatorContainer}>
-                    {EditIndicatorComponent ? (
-                      EditIndicatorComponent
-                    ) : (
-                      <View style={styles.indicator}>
-                        <View
-                          style={[
-                            styles.indicatorLine,
-                            theme.editIndicatorColor
-                              ? { backgroundColor: theme.editIndicatorColor }
-                              : undefined,
-                          ]}
-                        />
-                        <View
-                          style={[
-                            styles.indicatorLine,
-                            theme.editIndicatorColor
-                              ? { backgroundColor: theme.editIndicatorColor }
-                              : undefined,
-                          ]}
-                        />
-                      </View>
-                    )}
-                  </View>
-                  </GestureDetector>*/}
           </Animated.View>
         </GestureDetector>
       </TouchableOpacity>
