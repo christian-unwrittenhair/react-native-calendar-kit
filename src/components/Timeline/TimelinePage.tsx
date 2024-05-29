@@ -15,10 +15,10 @@ import { COLUMNS } from '../../constants';
 import { useTimelineCalendarContext } from '../../context/TimelineProvider';
 import type { EventItem, PackedEvent, UnavailableItemProps } from '../../types';
 import { convertPositionToISOString, divideEventsByColumns } from '../../utils';
+import EventBlock from './EventBlock';
 import NowIndicator from './NowIndicator';
 import TimelineBoard from './TimelineBoard';
 import TimelineHours from './TimelineHours';
-import DragEditItem from './DragEditItem';
 
 interface TimelinePageProps {
   startDate: string;
@@ -39,13 +39,6 @@ interface TimelinePageProps {
   renderHalfLineCustom?: (width: number) => JSX.Element;
   halfLineContainerStyle?: ViewStyle;
   currentDate: string;
-  isEnabled?: boolean;
-  onEndDragSelectedEvent?: (event: PackedEvent) => void;
-  renderSelectedEventContent?: (
-    event: PackedEvent,
-    timeIntervalHeight: SharedValue<number>
-  ) => JSX.Element;
-  EditIndicatorComponent?: JSX.Element;
 }
 
 const TimelinePage = ({
@@ -64,10 +57,6 @@ const TimelinePage = ({
   renderHalfLineCustom,
   halfLineContainerStyle,
   currentDate,
-  isEnabled,
-  onEndDragSelectedEvent,
-  renderSelectedEventContent,
-  EditIndicatorComponent
 }: TimelinePageProps) => {
   const {
     rightSideWidth,
@@ -152,21 +141,22 @@ const TimelinePage = ({
 
   const _renderEvent = (event: PackedEvent, dayIndex: number) => {
     return (
-      <DragEditItem
-        selectedEvent={{
-          ...event,
-          top: event.startHour * heightByTimeInterval.value,
-          height: event.duration * heightByTimeInterval.value,
-          leftByIndex: columnWidth * dayIndex,
-        }}
+      <EventBlock
+        key={event.id}
+        event={event}
         dayIndex={dayIndex}
-        onEndDragSelectedEvent={onEndDragSelectedEvent}
-        isEnabled={isEnabled}
-        EditIndicatorComponent={EditIndicatorComponent}
-        renderEventContent={renderSelectedEventContent || renderEventContent}
+        columnWidth={columnWidth}
+        timeIntervalHeight={timeIntervalHeight}
         onPressEvent={onPressEvent}
+        onLongPressEvent={onLongPressEvent}
+        renderEventContent={renderEventContent}
+        selectedEventId={selectedEventId}
+        theme={theme}
+        eventAnimatedDuration={eventAnimatedDuration}
+        isPinchActive={isPinchActive}
+        heightByTimeInterval={heightByTimeInterval}
       />
-    )
+    );
   };
 
   const _renderTimelineColumn = (dayIndex: number) => {

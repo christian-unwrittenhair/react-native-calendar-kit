@@ -1,6 +1,6 @@
 import moment from 'moment-timezone';
 import React, { memo, useEffect, useRef, useState } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
   Easing,
@@ -16,31 +16,26 @@ import { useTimelineCalendarContext } from '../../context/TimelineProvider';
 import useTimelineScroll from '../../hooks/useTimelineScroll';
 import type { PackedEvent, ThemeProperties } from '../../types';
 import { roundTo, triggerHaptic } from '../../utils';
-import EventBlock from "./EventBlock"
 
 interface DragEditItemProps {
   selectedEvent: PackedEvent;
-  dayIndex: number;
   onEndDragSelectedEvent?: (event: PackedEvent) => void;
   renderEventContent?: (
     event: PackedEvent,
     heightByTimeInterval: SharedValue<number>
   ) => JSX.Element;
-  isEnabled?: boolean; //TODO: remove in the future in favor of isDragEnabled internal state
+  isEnabled?: boolean;
   EditIndicatorComponent?: JSX.Element;
-  onPressEvent?: (eventItem: PackedEvent) => void;
 }
 
 const EVENT_DEFAULT_COLOR = '#FFFFFF';
 
 const DragEditItem = ({
   selectedEvent,
-  dayIndex,
   onEndDragSelectedEvent,
   renderEventContent,
   isEnabled = true,
   EditIndicatorComponent,
-  onPressEvent
 }: DragEditItemProps) => {
   const {
     columnWidth,
@@ -65,14 +60,12 @@ const DragEditItem = ({
     tzOffset,
     start,
     navigateDelay,
-    isPinchActive,
-    eventAnimatedDuration
   } = useTimelineCalendarContext();
   const { goToNextPage, goToPrevPage, goToOffsetY } = useTimelineScroll();
 
   const event = useRef(selectedEvent).current;
-  const leftWithHourColumn = event.leftByIndex!;
-  const defaultTopPosition = event.top;
+  const leftWithHourColumn = event.leftByIndex! + hourWidth;
+  const defaultTopPosition = event.top + spaceFromTop;
 
   const eventWidth = useSharedValue(event.width);
   const eventLeft = useSharedValue(leftWithHourColumn + event.left);
@@ -85,8 +78,6 @@ const DragEditItem = ({
   const translateX = useSharedValue(0);
   const eventTop = useSharedValue(defaultTopPosition);
   const eventHeight = useSharedValue<number>(event.height);
-
-  const [isDragEnabled, setIsDragEnabled] = useState(false);
 
   useEffect(() => {
     if (useHaptic) {
@@ -194,11 +185,6 @@ const DragEditItem = ({
     if (onEndDragSelectedEvent) {
       onEndDragSelectedEvent(newEvent);
     }
-
-    if(isDragEnabled) {
-      eventLeft.value = leftWithHourColumn
-      setIsDragEnabled(false)
-    }
   };
 
   const clearCurrentInterval = () => {
@@ -220,9 +206,6 @@ const DragEditItem = ({
       };
     })
     .onUpdate(({ translationX, translationY, absoluteX }) => {
-      if(!isDragEnabled) {
-        return
-      }
       const initIndex = event.leftByIndex! / columnWidth;
       const maxIndex = COLUMNS[viewMode] - 1;
       const minRounded = -initIndex;
@@ -238,7 +221,7 @@ const DragEditItem = ({
       const originalTime = originalY / heightByTimeInterval.value;
       const roundedHour = roundTo(originalTime, dragStep, 'up');
       const newTopPosition =
-        roundedHour * heightByTimeInterval.value;
+        roundedHour * heightByTimeInterval.value + spaceFromTop;
       const isSameX = translateX.value === roundedTranslateX;
       const isSameY = eventTop.value === newTopPosition;
       if (!isSameX || !isSameY) {
@@ -310,99 +293,59 @@ const DragEditItem = ({
     return <Text style={[styles.title, theme.eventTitle]}>{event.title}</Text>;
   };
 
-  const _onPress = () => {
-    const eventParams = {
-      ...event,
-      top: event.startHour * heightByTimeInterval.value,
-      height: event.duration * heightByTimeInterval.value,
-      leftByIndex: columnWidth * dayIndex,
-    };
-    onPressEvent?.(eventParams);
-  };
-
-  const _onLongPress = () => {
-    if(!isDragEnabled) {
-      setIsDragEnabled(true)
-      eventLeft.value = event.leftByIndex! + hourWidth;
-    }
-  }
-
   return (
-    <View style={[StyleSheet.absoluteFill]} pointerEvents="box-none">
-      {isDragEnabled &&
-        <EventBlock
-          key={event.id}
-          event={{
-            ...event,
-            top: eventTop.value
-          }}
-          dayIndex={dayIndex}
-          columnWidth={columnWidth}
-          timeIntervalHeight={timeIntervalHeight}
-          onPressEvent={onPressEvent}
-          renderEventContent={renderEventContent}
-          theme={theme}
-          eventAnimatedDuration={eventAnimatedDuration}
-          isPinchActive={isPinchActive}
-          heightByTimeInterval={heightByTimeInterval}
-        />
-      }
-      <TouchableOpacity onPress={_onPress} delayLongPress={800} onLongPress={_onLongPress} activeOpacity={1}>
-        <GestureDetector gesture={dragPositionGesture}>
-          <Animated.View
-            style={[
-              styles.eventContainer,
-              {
-                backgroundColor: event.color ? event.color : EVENT_DEFAULT_COLOR,
-                top: defaultTopPosition,
-              },
-              event.containerStyle,
-              animatedStyle,
-            ]}
-          >
-              {renderEventContent
-                ? renderEventContent(event, heightByTimeInterval)
-                : _renderEventContent()}
-                {/* NOTE: comment for now instead of removing
-                <GestureDetector gesture={dragDurationGesture}>
-                  <View style={styles.indicatorContainer}>
-                    {EditIndicatorComponent ? (
-                      EditIndicatorComponent
-                    ) : (
-                      <View style={styles.indicator}>
-                        <View
-                          style={[
-                            styles.indicatorLine,
-                            theme.editIndicatorColor
-                              ? { backgroundColor: theme.editIndicatorColor }
-                              : undefined,
-                          ]}
-                        />
-                        <View
-                          style={[
-                            styles.indicatorLine,
-                            theme.editIndicatorColor
-                              ? { backgroundColor: theme.editIndicatorColor }
-                              : undefined,
-                          ]}
-                        />
-                      </View>
-                    )}
-                  </View>
-                  </GestureDetector>*/}
-          </Animated.View>
-        </GestureDetector>
-      </TouchableOpacity>
-      {isDragEnabled &&
-        <AnimatedHour
-          currentHour={currentHour}
-          animatedTop={eventTop}
-          top={defaultTopPosition}
-          hourWidth={hourWidth}
-          theme={theme}
-          hourFormat={hourFormat}
-        />
-      }
+    <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
+      <GestureDetector gesture={dragPositionGesture}>
+        <Animated.View
+          style={[
+            styles.eventContainer,
+            {
+              backgroundColor: event.color ? event.color : EVENT_DEFAULT_COLOR,
+              top: defaultTopPosition,
+            },
+            event.containerStyle,
+            animatedStyle,
+          ]}
+        >
+          {renderEventContent
+            ? renderEventContent(event, heightByTimeInterval)
+            : _renderEventContent()}
+          <GestureDetector gesture={dragDurationGesture}>
+            <View style={styles.indicatorContainer}>
+              {EditIndicatorComponent ? (
+                EditIndicatorComponent
+              ) : (
+                <View style={styles.indicator}>
+                  <View
+                    style={[
+                      styles.indicatorLine,
+                      theme.editIndicatorColor
+                        ? { backgroundColor: theme.editIndicatorColor }
+                        : undefined,
+                    ]}
+                  />
+                  <View
+                    style={[
+                      styles.indicatorLine,
+                      theme.editIndicatorColor
+                        ? { backgroundColor: theme.editIndicatorColor }
+                        : undefined,
+                    ]}
+                  />
+                </View>
+              )}
+            </View>
+          </GestureDetector>
+        </Animated.View>
+      </GestureDetector>
+      <AnimatedHour
+        currentHour={currentHour}
+        animatedTop={eventTop}
+        top={defaultTopPosition}
+        hourWidth={hourWidth}
+        theme={theme}
+        hourFormat={hourFormat}
+      />
     </View>
   );
 };
