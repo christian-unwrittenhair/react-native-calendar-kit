@@ -41,6 +41,8 @@ const TimelineHeader = ({
     timelineHorizontalListRef,
   } = useTimelineCalendarContext();
 
+  const scrollX = useRef(new RNAnimated.Value(0)).current;
+
    const _onHorizontalScroll = RNAnimated.event(
     [{ nativeEvent: { contentOffset: { x: scrollX } } }],
     {
