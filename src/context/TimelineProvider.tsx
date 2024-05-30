@@ -10,8 +10,10 @@ import React, {
 } from 'react';
 import { PixelRatio, ScrollView, useWindowDimensions } from 'react-native';
 import type { GestureType } from 'react-native-gesture-handler';
-import {
+import Animated, {
+  AnimatedRef,
   SharedValue,
+  useAnimatedRef,
   useDerivedValue,
   useSharedValue,
 } from 'react-native-reanimated';
@@ -53,7 +55,7 @@ interface TimelineCalendarContextValue extends CustomTimelineProviderProps {
     width: number;
     height: number;
   }>;
-
+  verticalListRef: AnimatedRef<Animated.ScrollView>;
   timeIntervalHeight: SharedValue<number>;
   minTimeIntervalHeight: SharedValue<number>;
   maxTimeIntervalHeight: number;
@@ -136,6 +138,7 @@ const TimelineProvider: React.FC<TimelineProviderProps> = (props) => {
   const timelineLayoutRef = useRef({ width: 0, height: 0 });
   const isScrolling = useRef(false);
   const pinchRef = useRef();
+  
 
   /** Prepare data*/
   const pages = useMemo(
@@ -197,6 +200,8 @@ const TimelineProvider: React.FC<TimelineProviderProps> = (props) => {
 
   const isPinchActive = useSharedValue(false);
 
+  const verticalListRef = useAnimatedRef<Animated.ScrollView>();
+
   const value = useMemo(() => {
     const totalPages = {
       week: pages.week.data.length,
@@ -210,6 +215,7 @@ const TimelineProvider: React.FC<TimelineProviderProps> = (props) => {
     const columnWidth = rightSideWidth / numOfColumns;
 
     return {
+      verticalListRef,
       pages,
       hours,
       minDate,
@@ -269,6 +275,7 @@ const TimelineProvider: React.FC<TimelineProviderProps> = (props) => {
       heightByTimeInterval,
     };
   }, [
+    verticalListRef,
     pages,
     hours,
     timelineWidth,

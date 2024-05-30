@@ -1,10 +1,6 @@
-import { Gesture } from 'react-native-gesture-handler';
-import {
-  runOnJS,
-  useAnimatedReaction,
-  useSharedValue,
-  withTiming,
-} from 'react-native-reanimated';
+import { useRef } from 'react';
+import { Gesture, type GestureType } from 'react-native-gesture-handler';
+import { runOnJS, useAnimatedReaction, useSharedValue, withTiming, scrollTo } from 'react-native-reanimated';
 import { useTimelineCalendarContext } from '../context/TimelineProvider';
 import { clampValues } from '../utils';
 import useTimelineScroll from './useTimelineScroll';
@@ -19,13 +15,16 @@ const useZoomGesture = ({ enabled }: { enabled: boolean }) => {
     pinchRef,
     isPinchActive,
     spaceFromTop,
+    verticalListRef,
   } = useTimelineCalendarContext();
   const { goToOffsetY } = useTimelineScroll();
   const focalY = useSharedValue(0);
+  const startScale = useSharedValue(0);
+
+  const pinchGestureRef = useRef<GestureType>();
 
   const _handleScrollView = (currentHeight: number, prevHeight: number) => {
-    const pinchYNormalized =
-      (focalY.value + offsetY.value + spaceFromTop) / prevHeight;
+    const pinchYNormalized = (focalY.value + offsetY.value + spaceFromTop) / prevHeight;
     const pinchYScale = currentHeight * pinchYNormalized;
     const y = pinchYScale - focalY.value;
     goToOffsetY(y, false);
@@ -41,39 +40,54 @@ const useZoomGesture = ({ enabled }: { enabled: boolean }) => {
     }
   );
 
-  const startHeight = useSharedValue(timeIntervalHeight.value);
-  const zoomGesture = Gesture.Pinch()
+  const pinchGesture = Gesture.Pinch()
     .enabled(enabled)
-    .onStart(() => {
+    .onBegin(({ scale }) => {
       isPinchActive.value = true;
-      startHeight.value = timeIntervalHeight.value;
+      startScale.value = scale;
     })
-    .onUpdate((event) => {
+    .onUpdate(({ focalY, scale, velocity }) => {
       if (isDragCreateActive.value) {
         return;
       }
-      const newHeight = startHeight.value * event.scale;
+      const diffScale = startScale.value - scale;
+      const newScale = 1 - diffScale;
+      const newHeight = newScale * timeIntervalHeight.value;
       const clampedHeight = clampValues(
         newHeight,
         minTimeIntervalHeight.value - 2,
         maxTimeIntervalHeight + 5
       );
-      focalY.value = event.focalY;
+      startScale.value = scale;
+      focalY.value = focalY;
+      if (newHeight > maxTimeIntervalHeight + 16 || newHeight < minTimeIntervalHeight - 16 || velocity === 0) {
+        return;
+      }
       timeIntervalHeight.value = clampedHeight;
+      const deltaY = offsetY.value + focalY;
+      const newOffsetY = offsetY.value - deltaY * (1 - newScale);
+      scrollTo(verticalListRef, 0, newOffsetY, false);
     })
-    .onEnd(() => {
-      const clampedHeight = clampValues(
+    .onEnd(({ focalY }) => {
+      const nextHeight = clampValues(
         timeIntervalHeight.value,
         minTimeIntervalHeight.value,
         maxTimeIntervalHeight
       );
-      timeIntervalHeight.value = withTiming(clampedHeight, undefined, () => {
+      const newScale = nextHeight / timeIntervalHeight.value;
+      if (newScale === 1) {
         isPinchActive.value = false;
-      });
+        return;
+      }
+      timeIntervalHeight.value = withTiming(nextHeight, { duration: 250 });
+      const deltaY = offsetY.value + focalY;
+      const newOffsetY = offsetY.value - deltaY * (1 - newScale);
+      scrollTo(verticalListRef, 0, newOffsetY, true);
+      isPinchActive.value = false;
     })
-    .withRef(pinchRef);
+    .withRef(pinchGestureRef);
 
-  return { zoomGesture };
+  return { pinchGesture, pinchGestureRef };
 };
 
 export default useZoomGesture;

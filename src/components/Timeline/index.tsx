@@ -15,12 +15,9 @@ import {
   Gesture,
   GestureDetector,
   GestureHandlerRootView,
+  ScrollView,
 } from 'react-native-gesture-handler';
-import {
-  runOnJS,
-  useAnimatedReaction,
-  withTiming,
-} from 'react-native-reanimated';
+import Animated, { useAnimatedReaction, useSharedValue, useAnimatedStyle, withTiming, runOnJS } from 'react-native-reanimated';
 import { timeZoneData } from '../../assets/timeZone';
 import { COLUMNS, DEFAULT_PROPS } from '../../constants';
 import { useTimelineCalendarContext } from '../../context/TimelineProvider';
@@ -33,10 +30,9 @@ import DragCreateItem from './DragCreateItem';
 import TimelineHeader from './TimelineHeader';
 import TimelineSlots from './TimelineSlots';
 
-const Timeline: React.ForwardRefRenderFunction<
-  TimelineCalendarHandle,
-  TimelineProps
-> = (
+const AnimatedScrollView = Animated.createAnimatedComponent(ScrollView);
+
+const Timeline: React.ForwardRefRenderFunction<TimelineCalendarHandle, TimelineProps> = (
   {
     renderDayBarItem,
     onPressDayNum,
@@ -78,6 +74,7 @@ const Timeline: React.ForwardRefRenderFunction<
     initialTimeIntervalHeight,
     heightByTimeInterval,
     start,
+    verticalListRef,
   } = useTimelineCalendarContext();
   const { goToNextPage, goToPrevPage, goToOffsetY } = useTimelineScroll();
 
@@ -90,17 +87,10 @@ const Timeline: React.ForwardRefRenderFunction<
         animatedDate?: boolean;
         animatedHour?: boolean;
       }) => {
-        const numOfDays =
-          viewMode === 'workWeek' ? COLUMNS.week : COLUMNS[viewMode];
+        const numOfDays = viewMode === 'workWeek' ? COLUMNS.week : COLUMNS[viewMode];
         const currentDay = moment.tz(props?.date, tzOffset);
-        const firstDateMoment = moment.tz(
-          firstDate.current[viewMode],
-          tzOffset
-        );
-        const diffDays = currentDay
-          .clone()
-          .startOf('D')
-          .diff(firstDateMoment, 'd');
+        const firstDateMoment = moment.tz(firstDate.current[viewMode], tzOffset);
+        const diffDays = currentDay.clone().startOf('D').diff(firstDateMoment, 'd');
         const pageIndex = Math.floor(diffDays / numOfDays);
         if (pageIndex < 0 || pageIndex > totalPages[viewMode] - 1) {
           return;
@@ -114,8 +104,7 @@ const Timeline: React.ForwardRefRenderFunction<
         if (props?.hourScroll) {
           const minutes = currentDay.hour() * 60 + currentDay.minute();
           const subtractMinutes = minutes - start * 60;
-          const position =
-            (subtractMinutes * timeIntervalHeight.value) / 60 + spaceFromTop;
+          const position = (subtractMinutes * timeIntervalHeight.value) / 60 + spaceFromTop;
           const offset = timelineLayoutRef.current.height / 2;
           goToOffsetY(Math.max(0, position - offset), props?.animatedHour);
         }
@@ -131,20 +120,15 @@ const Timeline: React.ForwardRefRenderFunction<
         return Math.max(0, hour);
       },
       getDate: () => {
-        const numOfDays =
-          viewMode === 'workWeek' ? COLUMNS.week : COLUMNS[viewMode];
-        const firstDateMoment = moment.tz(
-          firstDate.current[viewMode],
-          tzOffset
-        );
+        const numOfDays = viewMode === 'workWeek' ? COLUMNS.week : COLUMNS[viewMode];
+        const firstDateMoment = moment.tz(firstDate.current[viewMode], tzOffset);
         const pageIndex = currentIndex.value;
         const currentDay = firstDateMoment.add(pageIndex * numOfDays, 'd');
         return currentDay.toISOString();
       },
       goToHour: (hour: number, animated?: boolean) => {
         const minutes = (hour - start) * 60;
-        const position =
-          (minutes * heightByTimeInterval.value) / 60 + spaceFromTop;
+        const position = (minutes * heightByTimeInterval.value) / 60 + spaceFromTop;
         goToOffsetY(Math.max(0, position - 8), animated);
       },
       forceUpdateNowIndicator: updateCurrentDate,
@@ -161,7 +145,7 @@ const Timeline: React.ForwardRefRenderFunction<
         const pinchYNormalized = offsetY.value / timeIntervalHeight.value;
         const pinchYScale = clampedHeight * pinchYNormalized;
         const y = pinchYScale;
-        timelineVerticalListRef.current?.scrollTo({ x: 0, y, animated: true });
+        verticalListRef.current?.scrollTo({ x: 0, y, animated: true });
         timeIntervalHeight.value = withTiming(clampedHeight);
       },
     }),
@@ -210,8 +194,7 @@ const Timeline: React.ForwardRefRenderFunction<
       if (scrollToNow && isSameDate) {
         const minutes = current.hour() * 60 + current.minute();
         const subtractMinutes = minutes - start * 60;
-        const position =
-          (subtractMinutes * heightByTimeInterval.value) / 60 + spaceFromTop;
+        const position = (subtractMinutes * heightByTimeInterval.value) / 60 + spaceFromTop;
         const offset = timelineLayoutRef.current.height / 2;
         goToOffsetY(Math.max(0, position - offset), true);
       }
@@ -234,7 +217,7 @@ const Timeline: React.ForwardRefRenderFunction<
     };
   };
 
-  const { zoomGesture } = useZoomGesture({
+  const { pinchGesture, pinchGestureRef } = useZoomGesture({
     enabled: allowPinchToZoom && !selectedEvent?.id,
   });
   const {
@@ -282,10 +265,16 @@ const Timeline: React.ForwardRefRenderFunction<
     [viewMode]
   );
 
+  const animContentStyle = useAnimatedStyle(() => ({
+    height: timelineLayoutRef.current.height,
+  }));
+
+  const _onScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+    offsetY.value = e.nativeEvent.contentOffset.y;
+  };
+
   return (
-    <GestureHandlerRootView
-      style={[styles.container, { backgroundColor: theme.backgroundColor }]}
-    >
+    <GestureHandlerRootView style={[styles.container, { backgroundColor: theme.backgroundColor }]}>
       {isShowHeader && (
         <TimelineHeader
           renderDayBarItem={renderDayBarItem}
@@ -296,23 +285,34 @@ const Timeline: React.ForwardRefRenderFunction<
         />
       )}
       <View style={styles.content} onLayout={_onContentLayout}>
-        <GestureDetector gesture={Gesture.Race(dragCreateGesture, zoomGesture)}>
-          <TimelineSlots
-            {...other}
-            events={groupedEvents}
-            selectedEvent={selectedEvent}
-            isDragging={isDraggingCreate}
-            isLoading={isLoading}
-            onLongPressBackground={_onLongPressBackground}
-          />
+        <GestureDetector gesture={pinchGesture}>
+          <AnimatedScrollView
+            ref={verticalListRef}
+            scrollEventThrottle={16}
+            pinchGestureEnabled={false}
+            showsVerticalScrollIndicator={false}
+            onScroll={_onScroll}
+            simultaneousHandlers={pinchGestureRef}
+          >
+            {/* <Animated.View style={[{ width: timelineLayoutRef.current.width }, animContentStyle]}> */}
+              <TimelineSlots
+                {...other}
+                events={groupedEvents}
+                selectedEvent={selectedEvent}
+                isDragging={isDraggingCreate}
+                isLoading={isLoading}
+                onLongPressBackground={_onLongPressBackground}
+              />
+              {isDraggingCreate && (
+                <DragCreateItem
+                  offsetX={dragXPosition}
+                  offsetY={dragYPosition}
+                  currentHour={currentHour}
+                />
+              )}
+            {/* </Animated.View> */}
+          </AnimatedScrollView>
         </GestureDetector>
-        {isDraggingCreate && (
-          <DragCreateItem
-            offsetX={dragXPosition}
-            offsetY={dragYPosition}
-            currentHour={currentHour}
-          />
-        )}
       </View>
     </GestureHandlerRootView>
   );
