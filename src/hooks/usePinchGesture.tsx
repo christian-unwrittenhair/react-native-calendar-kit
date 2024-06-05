@@ -58,7 +58,7 @@ const useZoomGesture = ({ enabled }: { enabled: boolean }) => {
         maxTimeIntervalHeight + 5
       );
       startScale.value = scale;
-      focalY.valueOf = focalY;
+      focalY = focalY;
       if (newHeight > maxTimeIntervalHeight + 16 || newHeight < minTimeIntervalHeight.value - 16 || velocity === 0) {
         return;
       }

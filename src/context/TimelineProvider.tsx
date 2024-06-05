@@ -54,7 +54,7 @@ interface TimelineCalendarContextValue extends CustomTimelineProviderProps {
     width: number;
     height: number;
   }>;
-  verticalListRef: useAnimatedRef<Animated.ScrollView>;
+  verticalListRef: any;
   timeIntervalHeight: SharedValue<number>;
   minTimeIntervalHeight: SharedValue<number>;
   maxTimeIntervalHeight: number;

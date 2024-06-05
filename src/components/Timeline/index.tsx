@@ -18,7 +18,7 @@ import {
   GestureHandlerRootView,
   ScrollView,
 } from 'react-native-gesture-handler';
-import Animated, { useAnimatedReaction, useAnimatedStyle, withTiming, runOnJS } from 'react-native-reanimated';
+import Animated, { useAnimatedReaction, withTiming, runOnJS } from 'react-native-reanimated';
 import { timeZoneData } from '../../assets/timeZone';
 import { COLUMNS, DEFAULT_PROPS } from '../../constants';
 import { useTimelineCalendarContext } from '../../context/TimelineProvider';
