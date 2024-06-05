@@ -11,7 +11,6 @@ import React, {
 import { PixelRatio, ScrollView, useWindowDimensions } from 'react-native';
 import type { GestureType } from 'react-native-gesture-handler';
 import Animated, {
-  AnimatedRef,
   SharedValue,
   useAnimatedRef,
   useDerivedValue,
@@ -55,7 +54,7 @@ interface TimelineCalendarContextValue extends CustomTimelineProviderProps {
     width: number;
     height: number;
   }>;
-  verticalListRef: AnimatedRef<Animated.ScrollView>;
+  verticalListRef: useAnimatedRef<Animated.ScrollView>;
   timeIntervalHeight: SharedValue<number>;
   minTimeIntervalHeight: SharedValue<number>;
   maxTimeIntervalHeight: number;

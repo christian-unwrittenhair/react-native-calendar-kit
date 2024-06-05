@@ -12,7 +12,6 @@ const useZoomGesture = ({ enabled }: { enabled: boolean }) => {
     minTimeIntervalHeight,
     isDragCreateActive,
     offsetY,
-    pinchRef,
     isPinchActive,
     spaceFromTop,
     verticalListRef,
@@ -59,8 +58,8 @@ const useZoomGesture = ({ enabled }: { enabled: boolean }) => {
         maxTimeIntervalHeight + 5
       );
       startScale.value = scale;
-      focalY.value = focalY;
-      if (newHeight > maxTimeIntervalHeight + 16 || newHeight < minTimeIntervalHeight - 16 || velocity === 0) {
+      focalY.valueOf = focalY;
+      if (newHeight > maxTimeIntervalHeight + 16 || newHeight < minTimeIntervalHeight.value - 16 || velocity === 0) {
         return;
       }
       timeIntervalHeight.value = clampedHeight;

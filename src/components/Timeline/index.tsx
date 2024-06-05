@@ -10,14 +10,15 @@ import {
   LayoutChangeEvent,
   StyleSheet,
   View,
+  NativeSyntheticEvent,
+  NativeScrollEvent,
 } from 'react-native';
 import {
-  Gesture,
   GestureDetector,
   GestureHandlerRootView,
   ScrollView,
 } from 'react-native-gesture-handler';
-import Animated, { useAnimatedReaction, useSharedValue, useAnimatedStyle, withTiming, runOnJS } from 'react-native-reanimated';
+import Animated, { useAnimatedReaction, useAnimatedStyle, withTiming, runOnJS } from 'react-native-reanimated';
 import { timeZoneData } from '../../assets/timeZone';
 import { COLUMNS, DEFAULT_PROPS } from '../../constants';
 import { useTimelineCalendarContext } from '../../context/TimelineProvider';
@@ -221,7 +222,6 @@ const Timeline: React.ForwardRefRenderFunction<TimelineCalendarHandle, TimelineP
     enabled: allowPinchToZoom && !selectedEvent?.id,
   });
   const {
-    dragCreateGesture,
     isDraggingCreate,
     dragXPosition,
     dragYPosition,
@@ -265,9 +265,9 @@ const Timeline: React.ForwardRefRenderFunction<TimelineCalendarHandle, TimelineP
     [viewMode]
   );
 
-  const animContentStyle = useAnimatedStyle(() => ({
-    height: timelineLayoutRef.current.height,
-  }));
+  // const animContentStyle = useAnimatedStyle(() => ({
+  //   height: timelineLayoutRef.current.height,
+  // }));
 
   const _onScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
     offsetY.value = e.nativeEvent.contentOffset.y;
