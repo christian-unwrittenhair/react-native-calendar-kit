@@ -139,8 +139,7 @@ const useDragCreateGesture = ({ onDragCreateEnd }: useDragCreateGesture) => {
     const time = event.y / heightByTimeInterval.value;
     const positionIndex = Math.round(event.x / columnWidth);
     const startDate = pages[viewMode].data[currentIndex.value];
-    const eventStart = moment
-      .tz(startDate, tzOffset)
+    const eventStart = moment(startDate)
       .add(positionIndex, 'd')
       .add(time, 'h')
       .add(start, 'h');
