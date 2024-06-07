@@ -305,14 +305,14 @@ const Timeline: React.ForwardRefRenderFunction<TimelineCalendarHandle, TimelineP
               isLoading={isLoading}
               onLongPressBackground={_onLongPressBackground}
             />
-          </AnimatedScrollView>
-          {isDraggingCreate && (
+            {isDraggingCreate && (
               <DragCreateItem
                 offsetX={dragXPosition}
                 offsetY={dragYPosition}
                 currentHour={currentHour}
               />
             )}
+          </AnimatedScrollView>
         </GestureDetector>
       </View>
     </GestureHandlerRootView>
