@@ -137,6 +137,7 @@ const TimelineProvider: React.FC<TimelineProviderProps> = (props) => {
   const timelineLayoutRef = useRef({ width: 0, height: 0 });
   const isScrolling = useRef(false);
   const pinchRef = useRef();
+  const verticalListRef = useAnimatedRef<Animated.ScrollView>();
   
 
   /** Prepare data*/
@@ -199,7 +200,6 @@ const TimelineProvider: React.FC<TimelineProviderProps> = (props) => {
 
   const isPinchActive = useSharedValue(false);
 
-  const verticalListRef = useAnimatedRef<Animated.ScrollView>();
 
   const value = useMemo(() => {
     const totalPages = {
@@ -274,7 +274,6 @@ const TimelineProvider: React.FC<TimelineProviderProps> = (props) => {
       heightByTimeInterval,
     };
   }, [
-    verticalListRef,
     pages,
     hours,
     timelineWidth,

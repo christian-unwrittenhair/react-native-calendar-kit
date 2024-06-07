@@ -14,6 +14,7 @@ import {
   NativeScrollEvent,
 } from 'react-native';
 import {
+  Gesture,
   GestureDetector,
   GestureHandlerRootView,
   ScrollView,
@@ -171,6 +172,7 @@ const Timeline: React.ForwardRefRenderFunction<TimelineCalendarHandle, TimelineP
       minTimeIntervalHeight.value,
       maxTimeIntervalHeight,
       timelineVerticalListRef,
+      verticalListRef,
     ]
   );
 
@@ -198,6 +200,10 @@ const Timeline: React.ForwardRefRenderFunction<TimelineCalendarHandle, TimelineP
         const position = (subtractMinutes * heightByTimeInterval.value) / 60 + spaceFromTop;
         const offset = timelineLayoutRef.current.height / 2;
         goToOffsetY(Math.max(0, position - offset), true);
+        verticalListRef.current?.scrollTo({
+            y: Math.max(0, position - offset),
+            animated: true,
+        });
       }
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -222,6 +228,7 @@ const Timeline: React.ForwardRefRenderFunction<TimelineCalendarHandle, TimelineP
     enabled: allowPinchToZoom && !selectedEvent?.id,
   });
   const {
+    dragCreateGesture,
     isDraggingCreate,
     dragXPosition,
     dragYPosition,
@@ -265,10 +272,6 @@ const Timeline: React.ForwardRefRenderFunction<TimelineCalendarHandle, TimelineP
     [viewMode]
   );
 
-  // const animContentStyle = useAnimatedStyle(() => ({
-  //   height: timelineLayoutRef.current.height,
-  // }));
-
   const _onScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
     offsetY.value = e.nativeEvent.contentOffset.y;
   };
@@ -285,7 +288,7 @@ const Timeline: React.ForwardRefRenderFunction<TimelineCalendarHandle, TimelineP
         />
       )}
       <View style={styles.content} onLayout={_onContentLayout}>
-        <GestureDetector gesture={pinchGesture}>
+        <GestureDetector gesture={Gesture.Race(dragCreateGesture, pinchGesture)}>
           <AnimatedScrollView
             ref={verticalListRef}
             scrollEventThrottle={16}
@@ -294,24 +297,22 @@ const Timeline: React.ForwardRefRenderFunction<TimelineCalendarHandle, TimelineP
             onScroll={_onScroll}
             simultaneousHandlers={pinchGestureRef}
           >
-            {/* <Animated.View style={[{ width: timelineLayoutRef.current.width }, animContentStyle]}> */}
-              <TimelineSlots
-                {...other}
-                events={groupedEvents}
-                selectedEvent={selectedEvent}
-                isDragging={isDraggingCreate}
-                isLoading={isLoading}
-                onLongPressBackground={_onLongPressBackground}
-              />
-              {isDraggingCreate && (
-                <DragCreateItem
-                  offsetX={dragXPosition}
-                  offsetY={dragYPosition}
-                  currentHour={currentHour}
-                />
-              )}
-            {/* </Animated.View> */}
+            <TimelineSlots
+              {...other}
+              events={groupedEvents}
+              selectedEvent={selectedEvent}
+              isDragging={isDraggingCreate}
+              isLoading={isLoading}
+              onLongPressBackground={_onLongPressBackground}
+            />
           </AnimatedScrollView>
+          {isDraggingCreate && (
+              <DragCreateItem
+                offsetX={dragXPosition}
+                offsetY={dragYPosition}
+                currentHour={currentHour}
+              />
+            )}
         </GestureDetector>
       </View>
     </GestureHandlerRootView>

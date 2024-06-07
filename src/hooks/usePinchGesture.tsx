@@ -59,7 +59,7 @@ const useZoomGesture = ({ enabled }: { enabled: boolean }) => {
       );
       startScale.value = scale;
       focalY = focalY;
-      if (newHeight > maxTimeIntervalHeight + 16 || newHeight < minTimeIntervalHeight.value - 16 || velocity === 0) {
+      if (newHeight > maxTimeIntervalHeight || newHeight < minTimeIntervalHeight.value || velocity === 0) {
         return;
       }
       timeIntervalHeight.value = clampedHeight;
@@ -78,7 +78,7 @@ const useZoomGesture = ({ enabled }: { enabled: boolean }) => {
         isPinchActive.value = false;
         return;
       }
-      timeIntervalHeight.value = withTiming(nextHeight, { duration: 250 });
+      timeIntervalHeight.value = withTiming(nextHeight, { duration: 500 });
       const deltaY = offsetY.value + focalY;
       const newOffsetY = offsetY.value - deltaY * (1 - newScale);
       scrollTo(verticalListRef, 0, newOffsetY, true);
