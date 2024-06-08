@@ -46,6 +46,7 @@ const useDragCreateGesture = ({ onDragCreateEnd }: useDragCreateGesture) => {
     start,
     navigateDelay,
     heightByTimeInterval,
+    verticalListRef,
   } = useTimelineCalendarContext();
   const { goToNextPage, goToPrevPage, goToOffsetY } = useTimelineScroll();
 
@@ -114,6 +115,10 @@ const useDragCreateGesture = ({ onDragCreateEnd }: useDragCreateGesture) => {
       );
       startOffsetY.current = targetOffset;
       goToOffsetY(targetOffset);
+      verticalListRef.current?.scrollTo({
+        y: targetOffset,
+        animated: true,
+      });
     }
 
     const subtractHour = (dragCreateInterval / 60) * timeIntervalHeight.value;
@@ -128,6 +133,10 @@ const useDragCreateGesture = ({ onDragCreateEnd }: useDragCreateGesture) => {
       const targetOffset = Math.min(maxOffsetY, nextOffset);
       startOffsetY.current = targetOffset;
       goToOffsetY(targetOffset);
+      verticalListRef.current?.scrollTo({
+        y: targetOffset,
+        animated: true,
+      });
     }
   };
 
