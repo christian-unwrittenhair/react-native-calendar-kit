@@ -109,6 +109,7 @@ const Timeline: React.ForwardRefRenderFunction<TimelineCalendarHandle, TimelineP
           const position = (subtractMinutes * timeIntervalHeight.value) / 60 + spaceFromTop;
           const offset = timelineLayoutRef.current.height / 2;
           goToOffsetY(Math.max(0, position - offset), props?.animatedHour);
+          verticalListRef.current?.scrollTo({ x: 0, y: position - offset, animated: props?.animatedHour });
         }
       },
       goToNextPage: goToNextPage,
@@ -132,6 +133,7 @@ const Timeline: React.ForwardRefRenderFunction<TimelineCalendarHandle, TimelineP
         const minutes = (hour - start) * 60;
         const position = (minutes * heightByTimeInterval.value) / 60 + spaceFromTop;
         goToOffsetY(Math.max(0, position - 8), animated);
+        verticalListRef.current?.scrollTo({ x: 0, y: position - 8, animated: true });
       },
       forceUpdateNowIndicator: updateCurrentDate,
       zoom: (props?: { scale?: number; height?: number }) => {
@@ -207,7 +209,7 @@ const Timeline: React.ForwardRefRenderFunction<TimelineCalendarHandle, TimelineP
       }
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [goToOffsetY, scrollToNow, timelineLayoutRef.current.height]);
+  }, [goToOffsetY, scrollToNow, timelineLayoutRef.current.height, verticalListRef]);
 
   const _onContentLayout = ({ nativeEvent: { layout } }: LayoutChangeEvent) => {
     if (!minTimeIntervalHeight.value) {

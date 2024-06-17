@@ -182,12 +182,6 @@ const TimelineSlots = ({
     }
   ).current;
 
-  const _onVerticalScroll = ({
-    nativeEvent: { contentOffset },
-  }: NativeSyntheticEvent<NativeScrollEvent>) => {
-    offsetY.value = contentOffset.y;
-  };
-
   const _renderSlots = () => {
     const listProps = {
       ref: timelineHorizontalListRef,
@@ -247,8 +241,8 @@ const TimelineSlots = ({
       showsVerticalScrollIndicator={false}
       scrollEventThrottle={16}
       style={styles.container}
-      onScroll={_onVerticalScroll}
       scrollEnabled={!isDragging}
+      
     >
       <Animated.View
         style={[
