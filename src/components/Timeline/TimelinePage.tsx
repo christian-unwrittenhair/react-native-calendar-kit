@@ -15,7 +15,7 @@ import { COLUMNS } from '../../constants';
 import { useTimelineCalendarContext } from '../../context/TimelineProvider';
 import type { EventItem, PackedEvent, UnavailableItemProps } from '../../types';
 import { convertPositionToISOString, divideEventsByColumns } from '../../utils';
-import EventBlock from './EventBlock';
+import EventBlock from './CustomEventBlock';
 import NowIndicator from './NowIndicator';
 import TimelineBoard from './TimelineBoard';
 import TimelineHours from './TimelineHours';
