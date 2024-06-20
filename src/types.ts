@@ -110,6 +110,8 @@ export interface TimelineProps {
 
   /** Callback function will be called when the time interval height is changed */
   onTimeIntervalHeightChange?: (height: number) => void;
+
+  onPressEventService?(event: PackedEvent, service: any): void;
 }
 
 export interface UnavailableItemProps {

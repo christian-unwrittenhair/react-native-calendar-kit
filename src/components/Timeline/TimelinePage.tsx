@@ -46,6 +46,7 @@ const TimelinePage = ({
   onPressBackground,
   onLongPressBackground,
   onPressOutBackground,
+  onPressEventService,
   isLoading,
   holidays,
   events,
@@ -149,6 +150,7 @@ const TimelinePage = ({
         timeIntervalHeight={timeIntervalHeight}
         onPressEvent={onPressEvent}
         onLongPressEvent={onLongPressEvent}
+        onPressEventService={onPressEventService}
         renderEventContent={renderEventContent}
         selectedEventId={selectedEventId}
         theme={theme}

@@ -1,5 +1,5 @@
 import React from "react";
-import { View } from "react-native";
+import { View, TouchableOpacity } from "react-native";
 import CustomLineView from "./CustomLineView";
 import Animated, { useAnimatedStyle, withTiming } from "react-native-reanimated";
 import { useTimelineCalendarContext } from "../../../context/TimelineProvider"
@@ -10,6 +10,7 @@ const ServiceWithProcessingTime = ({
 	service,
 	totalSlotDuration,
 	header,
+	onPressEventService
 }: ServiceProps) => {
 
 	const {
@@ -42,6 +43,8 @@ const ServiceWithProcessingTime = ({
 		  }
 		};
 	  }, [event]);
+
+	const handlePressProcessingTime = () => onPressEventService?.(event, service)
 	
 	return (
 		<View style={{ flexDirection: "column" }}>
@@ -51,11 +54,13 @@ const ServiceWithProcessingTime = ({
 				{header}
 			</Animated.View>
 
-			<Animated.View
-				style={animatedStyles.processing}
-			>
-				<CustomLineView strokeColor="white" strokeWidth="2" width={"100%"} height={100} />
-			</Animated.View>
+			<TouchableOpacity disabled={!onPressEventService} onPress={handlePressProcessingTime}>
+				<Animated.View
+					style={animatedStyles.processing}
+				>
+					<CustomLineView strokeColor="white" strokeWidth="2" width={"100%"} height={100} />
+				</Animated.View>
+			</TouchableOpacity>
 
 			<Animated.View
 				style={animatedStyles.finishing}
