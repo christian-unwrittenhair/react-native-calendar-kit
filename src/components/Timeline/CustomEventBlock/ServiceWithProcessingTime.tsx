@@ -17,52 +17,48 @@ const ServiceWithProcessingTime = ({
 		eventAnimatedDuration
 	} = useTimelineCalendarContext();
 
-	const applicationTimeStyles = useAnimatedStyle(() => {
-		const height = ((event.duration * heightByTimeInterval.value) / totalSlotDuration) * service.application_time
-
+	const animatedStyles = useAnimatedStyle(() => {
+		const baseHeight = (event.duration * heightByTimeInterval.value) / totalSlotDuration;
+	
+		const applicationHeight = baseHeight * service.application_time;
+		const processingHeight = baseHeight * service.processing_time;
+		const finishingHeight = baseHeight * service.finishing_time;
+	
 		return {
-			height: withTiming(height, {
-				duration: eventAnimatedDuration
+		  application: {
+			height: withTiming(applicationHeight, {
+			  duration: eventAnimatedDuration
 			}),
-		}
-	}, [event])
-
-	const processingTimeStyles = useAnimatedStyle(() => {
-		const height = ((event.duration * heightByTimeInterval.value) / totalSlotDuration) * service.processing_time
-
-		return {
-			height: withTiming(height, {
-				duration: eventAnimatedDuration
+		  },
+		  processing: {
+			height: withTiming(processingHeight, {
+			  duration: eventAnimatedDuration
 			}),
-		}
-	}, [event])
-
-	const finishingTimeStyles = useAnimatedStyle(() => {
-		const height = ((event.duration * heightByTimeInterval.value) / totalSlotDuration) * service.finishing_time
-
-		return {
-			height: withTiming(height, {
-				duration: eventAnimatedDuration
+		  },
+		  finishing: {
+			height: withTiming(finishingHeight, {
+			  duration: eventAnimatedDuration
 			}),
-		}
-	}, [event])
+		  }
+		};
+	  }, [event]);
 	
 	return (
 		<View style={{ flexDirection: "column" }}>
 			<Animated.View
-				style={applicationTimeStyles}
+				style={animatedStyles.application}
 			>
 				{header}
 			</Animated.View>
 
 			<Animated.View
-				style={processingTimeStyles}
+				style={animatedStyles.processing}
 			>
 				<CustomLineView strokeColor="white" strokeWidth="2" width={"100%"} height={100} />
 			</Animated.View>
 
 			<Animated.View
-				style={finishingTimeStyles}
+				style={animatedStyles.finishing}
 			/>
 		</View>
 	);
