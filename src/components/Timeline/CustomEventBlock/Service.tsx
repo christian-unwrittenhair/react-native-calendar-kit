@@ -8,6 +8,7 @@ export type ServiceProps = {
 	service: any;
 	totalSlotDuration: number;
 	header: JSX.Element;
+	onPressEventService?(event: PackedEvent, service: any): void;
 };
 
 const Service = (props: ServiceProps) => {
