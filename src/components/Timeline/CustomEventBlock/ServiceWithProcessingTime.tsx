@@ -26,7 +26,7 @@ const ServiceWithProcessingTime = ({
 				duration: eventAnimatedDuration
 			})
 		}
-	  }, [event, heightByTimeInterval])
+	  }, [event])
 
 	  const processingTimeStyles = useAnimatedStyle(() => {
 		const height = ((event.duration * heightByTimeInterval.value) / totalSlotDuration) * service.processing_time
@@ -36,7 +36,7 @@ const ServiceWithProcessingTime = ({
 				duration: eventAnimatedDuration
 			})
 		}
-	  }, [event, heightByTimeInterval])
+	  }, [event])
 
 	  const finishingTimeStyles = useAnimatedStyle(() => {
 		const height = ((event.duration * heightByTimeInterval.value) / totalSlotDuration) * service.finishing_time
@@ -46,7 +46,7 @@ const ServiceWithProcessingTime = ({
 				duration: eventAnimatedDuration
 			})
 		}
-	  }, [event, heightByTimeInterval])
+	  }, [event])
 
 	const handlePressProcessingTime = () => onPressEventService?.(event, service)
 	

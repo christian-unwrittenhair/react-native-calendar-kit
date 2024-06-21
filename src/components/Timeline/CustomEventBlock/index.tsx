@@ -11,6 +11,7 @@ import type { PackedEvent, ThemeProperties } from '../../../types';
 import { shallowEqual } from '../../../utils';
 import Service from "./Service"
 import Header from "./Header"
+import CustomerName from "./CustomerName"
 import { useTimelineCalendarContext } from '../../../context/TimelineProvider';
 
 export interface EventBlockProps {
@@ -150,6 +151,7 @@ const EventBlock = ({
               }
         }
       >
+        {!event.consumer && <CustomerName eventTitle={String(event.title)} />}
         <View style={{ flexDirection: "column" }}>
           {event.services.map(renderServices)}
         </View>
