@@ -1,5 +1,5 @@
 import React, { memo } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, View, TouchableWithoutFeedback, GestureResponderEvent } from 'react-native';
 import Animated, {
   SharedValue,
   useAnimatedStyle,
@@ -7,11 +7,17 @@ import Animated, {
 import { DEFAULT_PROPS } from '../../constants';
 import { useTimelineCalendarContext } from '../../context/TimelineProvider';
 import type { ThemeProperties } from '../../types';
+import { convertPositionToISOString } from "../../utils"
 
 export type HourItem = { text: string; hourNumber: number };
 
-const TimelineHours = () => {
-  const { hours, hourWidth, timeIntervalHeight, spaceFromTop, theme } =
+type TimelineHoursProps = {
+  startDate?: string;
+  onPress?(date: string): void;
+}
+
+const TimelineHours = ({ startDate, onPress }: TimelineHoursProps) => {
+  const { hours, hourWidth, timeIntervalHeight, spaceFromTop, theme, heightByTimeInterval, columnWidth } =
     useTimelineCalendarContext();
 
   const _renderHour = (hour: HourItem, index: number) => {
@@ -27,25 +33,43 @@ const TimelineHours = () => {
     );
   };
 
+  const handlePress = (event: GestureResponderEvent) => {
+    if (!event.nativeEvent.locationX || !event.nativeEvent.locationY) {
+      return;
+    }
+    if(startDate) {
+      const dateIsoString = convertPositionToISOString(
+        event.nativeEvent.locationX,
+        event.nativeEvent.locationY,
+        startDate,
+        heightByTimeInterval.value,
+        columnWidth
+      );
+      onPress?.(dateIsoString)
+    }
+  }
+
   return (
-    <View
-      style={[
-        styles.hours,
-        {
-          width: hourWidth,
-          backgroundColor: theme.backgroundColor,
-          marginBottom: spaceFromTop,
-        },
-      ]}
-    >
-      {hours.map(_renderHour)}
+    <TouchableWithoutFeedback onPress={handlePress}>
       <View
         style={[
-          styles.verticalLine,
-          { top: spaceFromTop, backgroundColor: theme.cellBorderColor },
+          styles.hours,
+          {
+            width: hourWidth,
+            backgroundColor: theme.backgroundColor,
+            marginBottom: spaceFromTop,
+          },
         ]}
-      />
-    </View>
+      >
+        {hours.map(_renderHour)}
+        <View
+          style={[
+            styles.verticalLine,
+            { top: spaceFromTop, backgroundColor: theme.cellBorderColor },
+          ]}
+        />
+      </View>
+    </TouchableWithoutFeedback>
   );
 };
 

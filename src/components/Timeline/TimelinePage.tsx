@@ -39,6 +39,8 @@ interface TimelinePageProps {
   renderHalfLineCustom?: (width: number) => JSX.Element;
   halfLineContainerStyle?: ViewStyle;
   currentDate: string;
+  onPressEventService?(event: PackedEvent, service: any): void;
+  onPressTimeHours?(date: string): void;
 }
 
 const TimelinePage = ({
@@ -47,6 +49,7 @@ const TimelinePage = ({
   onLongPressBackground,
   onPressOutBackground,
   onPressEventService,
+  onPressTimeHours,
   isLoading,
   holidays,
   events,
@@ -196,7 +199,12 @@ const TimelinePage = ({
         { width: viewMode === 'day' ? timelineWidth : rightSideWidth },
       ]}
     >
-      {viewMode === 'day' && <TimelineHours />}
+      {viewMode === 'day' && (
+        <TimelineHours
+          startDate={startDate}
+          onPress={onPressTimeHours}
+        />
+      )}
       <Animated.View
         style={[{ width: rightSideWidth, marginTop: spaceFromTop }, boardStyle]}
       >

@@ -112,6 +112,8 @@ export interface TimelineProps {
   onTimeIntervalHeightChange?: (height: number) => void;
 
   onPressEventService?(event: PackedEvent, service: any): void;
+
+  onPressTimeHours?(date: string): void;
 }
 
 export interface UnavailableItemProps {
