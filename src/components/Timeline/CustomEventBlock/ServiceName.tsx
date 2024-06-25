@@ -11,7 +11,7 @@ const ServiceName = ({
     time
 }: ServiceNameProps) => {
 	return (
-		<Text style={styles.textContainer}>
+		<Text style={styles.textContainer} numberOfLines={1}>
             <Text style={styles.time}>
                 {time}
             </Text>

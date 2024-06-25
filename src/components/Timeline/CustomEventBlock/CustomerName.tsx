@@ -33,12 +33,12 @@ const CustomerName = ({
                     <View style={styles.slotContainer}>
                         <Image source={require("./u_user.png")} style={styles.image} />
                     </View>
-                    <Text style={styles.title}>{getName(customer)}</Text>
+                    <Text style={styles.title} numberOfLines={1}>{getName(customer)}</Text>
                 </>
             ) : (
                 <View style={styles.taskContainer}>
-                    <Text style={styles.title}>{eventTitle}</Text>
-                    <View style={{ flex: 1, alignItems: "flex-end", marginRight: 10 }}>
+                    <Text style={styles.title} numberOfLines={1}>{eventTitle}</Text>
+                    <View style={{ alignItems: "flex-end", marginRight: 10 }}>
                         <Image source={require("./task_image.png")} />
                     </View>
                 </View>
@@ -62,6 +62,7 @@ const styles = StyleSheet.create({
 		borderRadius: 20,
     },
     title: {
+        flex: 1,
         fontSize: 9,
 		textTransform: "capitalize",
 		marginLeft: 2,

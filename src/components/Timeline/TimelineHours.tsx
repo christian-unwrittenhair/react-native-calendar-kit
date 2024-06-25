@@ -4,6 +4,7 @@ import Animated, {
   SharedValue,
   useAnimatedStyle,
 } from 'react-native-reanimated';
+import moment from "moment-timezone";
 import { DEFAULT_PROPS } from '../../constants';
 import { useTimelineCalendarContext } from '../../context/TimelineProvider';
 import type { ThemeProperties } from '../../types';
@@ -29,6 +30,11 @@ const TimelineHours = ({ startDate, onPress }: TimelineHoursProps) => {
         timeIntervalHeight={timeIntervalHeight}
         spaceContent={spaceFromTop}
         theme={theme}
+        onPress={(hour) => {
+          const dateMoment = moment(startDate)
+          .add(hour, 'hour');
+          onPress?.(dateMoment.toISOString())
+        }}
       />
     );
   };
@@ -81,25 +87,33 @@ const HourItem = ({
   timeIntervalHeight,
   spaceContent,
   theme,
+  onPress
 }: {
   hour: HourItem;
   index: number;
   timeIntervalHeight: SharedValue<number>;
   spaceContent: number;
   theme: ThemeProperties;
+  onPress: (hour: number) => void;
 }) => {
   const hourLabelStyle = useAnimatedStyle(() => {
     return { top: timeIntervalHeight.value * index - 6 + spaceContent };
   });
 
+  const handlePress = () => {
+    onPress(hour.hourNumber);
+  };
+
   return (
-    <Animated.Text
-      allowFontScaling={theme.allowFontScaling}
-      key={`hourLabel_${hour.text}`}
-      style={[styles.hourText, theme.hourText, hourLabelStyle]}
-    >
-      {hour.text}
-    </Animated.Text>
+    <TouchableWithoutFeedback onPress={handlePress}>
+      <Animated.Text
+        allowFontScaling={theme.allowFontScaling}
+        key={`hourLabel_${hour.text}`}
+        style={[styles.hourText, theme.hourText, hourLabelStyle]}
+      >
+        {hour.text}
+      </Animated.Text>
+    </TouchableWithoutFeedback>
   );
 };
 
