@@ -63,9 +63,10 @@ const styles = StyleSheet.create({
     },
     title: {
         flex: 1,
-        fontSize: 9,
+        fontSize: 10,
 		textTransform: "capitalize",
 		marginLeft: 2,
+        fontWeight: "bold"
     },
     slotContainer: {
         width: 15,
