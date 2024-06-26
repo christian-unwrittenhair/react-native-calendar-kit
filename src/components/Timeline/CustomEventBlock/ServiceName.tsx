@@ -24,11 +24,11 @@ export default ServiceName;
 
 const styles = StyleSheet.create({
     textContainer: {
-        fontSize: 9,
+        fontSize: 10,
 		marginLeft: 5,
     },
     time: {
-        fontSize: 9,
+        fontSize: 10,
 		marginLeft: 5,
     }
 })

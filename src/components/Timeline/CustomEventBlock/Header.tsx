@@ -29,7 +29,7 @@ const Header = ({
 	} = useTimelineCalendarContext();
 
 	const serviceNameStyles = useAnimatedStyle(() => {
-		const height = heightByTimeInterval.value < 80 ? 0 : 12
+		const height = heightByTimeInterval.value < 85 ? 0 : 12
 
 		return {
 			height: withTiming(height, {
