@@ -235,6 +235,9 @@ export interface TimelineProviderProps {
    */
   dragCreateInterval?: number;
 
+  /** Enable long press to enable drag and drop to edit an event */
+  allowEventHoldToDragEvent?: boolean;
+
   /** Handle the navigation to next/previous time (in minutes) while dragging event to create/edit.
    *
    ** Default: `10`
