@@ -26,7 +26,11 @@ import { useTimelineCalendarContext } from '../../context/TimelineProvider';
 import useDragCreateGesture from '../../hooks/useDragCreateGesture';
 import useZoomGesture from '../../hooks/usePinchGesture';
 import useTimelineScroll from '../../hooks/useTimelineScroll';
-import type { TimelineCalendarHandle, TimelineProps } from '../../types';
+import type {
+  PackedEvent,
+  TimelineCalendarHandle,
+  TimelineProps,
+} from '../../types';
 import { clampValues, groupEventsByDate } from '../../utils';
 import DragCreateItem from './DragCreateItem';
 import TimelineHeader from './TimelineHeader';
@@ -46,6 +50,7 @@ const Timeline: React.ForwardRefRenderFunction<TimelineCalendarHandle, TimelineP
     highlightDates,
     onChange,
     onTimeIntervalHeightChange,
+    onLongPressEvent,
     ...other
   },
   ref
@@ -77,6 +82,7 @@ const Timeline: React.ForwardRefRenderFunction<TimelineCalendarHandle, TimelineP
     heightByTimeInterval,
     start,
     verticalListRef,
+    allowEventHoldToDragEvent,
   } = useTimelineCalendarContext();
   const { goToNextPage, goToPrevPage, goToOffsetY } = useTimelineScroll();
 
@@ -236,8 +242,11 @@ const Timeline: React.ForwardRefRenderFunction<TimelineCalendarHandle, TimelineP
     dragYPosition,
     currentHour,
     onLongPress,
+    draggingEvent,
+    onLongEditEvent,
   } = useDragCreateGesture({
     onDragCreateEnd,
+    onDragEditEnd: other.onEndDragSelectedEvent,
   });
 
   const _onLongPressBackground = (
@@ -248,6 +257,14 @@ const Timeline: React.ForwardRefRenderFunction<TimelineCalendarHandle, TimelineP
       onLongPress(event);
     }
     onLongPressBackground?.(date, event);
+  };
+
+  const _onLongPressEvent = (event: PackedEvent) => {
+    if (allowEventHoldToDragEvent) {
+      onLongEditEvent(event);
+    }
+
+    onLongPressEvent?.(event);
   };
 
   const groupedEvents = useMemo(
@@ -305,15 +322,25 @@ const Timeline: React.ForwardRefRenderFunction<TimelineCalendarHandle, TimelineP
               selectedEvent={selectedEvent}
               isDragging={isDraggingCreate}
               isLoading={isLoading}
+              onLongPressEvent={_onLongPressEvent}
               onLongPressBackground={_onLongPressBackground}
             />
           </AnimatedScrollView>
         </GestureDetector>
-        {isDraggingCreate && (
+        {isDraggingCreate && !draggingEvent && (
           <DragCreateItem
             offsetX={dragXPosition}
             offsetY={dragYPosition}
             currentHour={currentHour}
+          />
+        )}
+        {isDraggingCreate && !!draggingEvent && (
+          <DragCreateItem
+            event={draggingEvent}
+            offsetX={dragXPosition}
+            offsetY={dragYPosition}
+            currentHour={currentHour}
+            renderEventContent={other.renderEventContent}
           />
         )}
       </View>

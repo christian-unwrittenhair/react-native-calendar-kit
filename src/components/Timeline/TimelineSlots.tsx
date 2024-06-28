@@ -253,7 +253,7 @@ const TimelineSlots = ({
       >
         {_renderSlots()}
       </Animated.View>
-      {!!selectedEvent?.id && (
+      {/* {!!selectedEvent?.id && (
         <DragEditItem
           selectedEvent={selectedEvent}
           onEndDragSelectedEvent={onEndDragSelectedEvent}
@@ -261,7 +261,7 @@ const TimelineSlots = ({
           EditIndicatorComponent={EditIndicatorComponent}
           renderEventContent={renderSelectedEventContent || renderEventContent}
         />
-      )}
+      )} */}
     </ScrollView>
   );
 };
