@@ -1,5 +1,5 @@
 import moment from 'moment-timezone';
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import Animated, {
   runOnJS,
@@ -10,6 +10,7 @@ import Animated, {
 import { DEFAULT_PROPS } from '../../constants';
 import { useTimelineCalendarContext } from '../../context/TimelineProvider';
 import type { PackedEvent, ThemeProperties } from '../../types';
+import { uniqBy } from "lodash";
 
 interface DragCreateItemProps {
   offsetX: SharedValue<number>;
@@ -36,14 +37,97 @@ export const DragCreateItem = ({
     dragCreateInterval,
     theme,
     hourFormat,
+    events,
+    pages,
+    viewMode,
+    currentIndex
   } = useTimelineCalendarContext();
 
+  //prepares the events data structure for easier checking later on
+  const currentDateSlots = useMemo(
+    () => {
+      const currentDate = pages[viewMode].data[currentIndex.value]
+      if(currentDate) {
+        const result = events
+
+        //only include the slots on the current selected date
+        .filter((eventItem) => eventItem.start.includes(currentDate))
+        .flatMap(eventItem => {
+
+          const services = eventItem.consumer ? eventItem.services : [{ has_processing_time: false, duration: moment(eventItem.end).diff(moment(eventItem.start), 'minutes') }]
+          
+          return services.flatMap((service: any) => {
+            const application_time = service.application_time ? parseInt(service.application_time) : 0
+            const processing_time = service.processing_time ? parseInt(service.processing_time) : 0
+            const finishing_time = service.finishing_time ? parseInt(service.finishing_time) : 0
+
+            const sections = []
+
+            if(application_time) sections.push({ start: 0, end: application_time })
+            if(finishing_time) sections.push({ start: application_time + processing_time, end: finishing_time })
+            if(!service.has_processing_time) sections.push({ start: 0, end: service.duration })
+            
+            return sections.map((section) => {
+              const formattedStart = moment(eventItem.start).add(section.start, 'minutes').format("HH:mm")
+              const formattedEnd = moment(eventItem.start).add(section.start + section.end, 'minutes').format("HH:mm")
+
+              const startSplit = formattedStart.split(":")
+              const endSplit = formattedEnd.split(":")
+
+              const parsedStartMinutes = parseInt(String(startSplit[1]))
+              const parsedEndMinutes = parseInt(String(endSplit[1]))
+              
+              const startMinutes = parsedStartMinutes > 0 ? parsedStartMinutes / 60 : 0
+              const endMinutes = parsedEndMinutes > 0 ? parsedEndMinutes / 60 : 0
+
+              return {
+                start: parseFloat(startSplit[0]) + parseFloat(startMinutes),
+                end: parseFloat(endSplit[0]) + parseFloat(endMinutes),
+              }
+            })
+          })
+        })
+
+        //remove duplicate slots so there are lesser items to loop when doing checks
+        return uniqBy(result, (slot) => `${slot.start}-${slot.end}`)
+      }
+      return []
+    },
+    [events, currentIndex.value]
+  );
+
   const animatedStyles = useAnimatedStyle(() => {
+    const curHour = currentHour.value
+
+    let isSlotTaken = false
+
+    if(event) {
+      let extra = 0;
+      if (curHour < 0) {
+        extra = 24;
+      } else if (curHour >= 24) {
+        extra = -24;
+      }
+      const convertedTime = curHour + extra;
+      const rHours = Math.floor(convertedTime);
+      const minutes = (convertedTime - rHours) * 60;
+      const rMinutes = Math.round(minutes);
+      const offset = rHours < 0 ? 24 : 0;
+      const hourStr = rHours + offset < 10 ? '0' + rHours : rHours + offset;
+      const minutesStr = rMinutes < 10 ? '0' + rMinutes : rMinutes;
+
+      const startTime = parseFloat(hourStr) + parseFloat(minutesStr / 60)
+      const endTime = startTime + (event.duration)
+
+      isSlotTaken = currentDateSlots.some(slot => startTime < slot.end && slot.start < endTime)
+    }
+
     return {
       height:
         (event ? event.duration : dragCreateInterval / 60) *
         heightByTimeInterval.value,
       transform: [{ translateX: offsetX.value }, { translateY: offsetY.value }],
+      backgroundColor: event ? (isSlotTaken ? "rgba(0, 0, 0, 0.4)" : "rgba(0, 255, 0, 0.4)") : theme.dragCreateItemBackgroundColor
     };
   });
 
@@ -55,7 +139,6 @@ export const DragCreateItem = ({
           {
             left: hourWidth,
             width: columnWidth,
-            backgroundColor: theme.dragCreateItemBackgroundColor,
             ...(!event && {
             }),
           },
@@ -178,7 +261,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     left: 4,
     borderColor: DEFAULT_PROPS.PRIMARY_COLOR,
-    // backgroundColor: DEFAULT_PROPS.WHITE_COLOR,
+    backgroundColor: DEFAULT_PROPS.WHITE_COLOR,
   },
   hourText: {
     color: DEFAULT_PROPS.PRIMARY_COLOR,

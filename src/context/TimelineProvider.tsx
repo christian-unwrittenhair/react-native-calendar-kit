@@ -124,6 +124,7 @@ const TimelineProvider: React.FC<TimelineProviderProps> = (props) => {
     nowIndicatorInterval = DEFAULT_PROPS.NOW_INDICATOR_INTERVAL,
     navigateDelay = DEFAULT_PROPS.NAVIGATION_DELAY,
     calendarWidth,
+    events = []
   } = props;
 
   const { width: windowWidth } = useWindowDimensions();
@@ -274,6 +275,7 @@ const TimelineProvider: React.FC<TimelineProviderProps> = (props) => {
       numOfColumns,
       initialTimeIntervalHeight,
       heightByTimeInterval,
+      events
     };
   }, [
     pages,
@@ -321,6 +323,7 @@ const TimelineProvider: React.FC<TimelineProviderProps> = (props) => {
     navigateDelay,
     initialTimeIntervalHeight,
     heightByTimeInterval,
+    events
   ]);
 
   const mountedRef = useRef(false);
