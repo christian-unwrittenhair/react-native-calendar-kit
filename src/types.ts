@@ -336,6 +336,8 @@ export interface TimelineProviderProps {
 
   /** Width of calendar */
   calendarWidth?: number;
+
+  events?: EventItem[];
 }
 
 export interface DayBarItemProps {
