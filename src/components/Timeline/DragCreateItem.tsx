@@ -9,8 +9,8 @@ import Animated, {
 } from 'react-native-reanimated';
 import { DEFAULT_PROPS } from '../../constants';
 import { useTimelineCalendarContext } from '../../context/TimelineProvider';
-import type { PackedEvent, ThemeProperties } from '../../types';
-import { uniqBy } from "lodash";
+import type { PackedEvent, ThemeProperties, UnavailableHour } from '../../types';
+import { uniqBy, flatten } from "lodash";
 
 interface DragCreateItemProps {
   offsetX: SharedValue<number>;
@@ -40,14 +40,21 @@ export const DragCreateItem = ({
     events,
     pages,
     viewMode,
-    currentIndex
+    currentIndex,
+    unavailableHours,
+    tzOffset
   } = useTimelineCalendarContext();
 
   //prepares the events data structure for easier checking later on
   const currentDateSlots = useMemo(
     () => {
+      let workHours: UnavailableHour[] = []
       const currentDate = pages[viewMode].data[currentIndex.value]
       if(currentDate) {
+        if(unavailableHours) {
+          workHours = flatten(Object.values(unavailableHours))
+        }
+
         const result = events
 
         //only include the slots on the current selected date
@@ -68,8 +75,8 @@ export const DragCreateItem = ({
             if(!service.has_processing_time) sections.push({ start: 0, end: service.duration })
             
             return sections.map((section) => {
-              const formattedStart = moment(eventItem.start).add(section.start, 'minutes').format("HH:mm")
-              const formattedEnd = moment(eventItem.start).add(section.start + section.end, 'minutes').format("HH:mm")
+              const formattedStart = moment.tz(eventItem.start, tzOffset).add(section.start, 'minutes').format("HH:mm")
+              const formattedEnd = moment.tz(eventItem.start, tzOffset).add(section.start + section.end, 'minutes').format("HH:mm")
 
               const startSplit = formattedStart.split(":")
               const endSplit = formattedEnd.split(":")
@@ -89,12 +96,25 @@ export const DragCreateItem = ({
         })
 
         //remove duplicate slots so there are lesser items to loop when doing checks
-        return uniqBy(result, (slot) => `${slot.start}-${slot.end}`)
+        return uniqBy([...result, ...workHours], (slot) => `${slot.start}-${slot.end}`)
       }
-      return []
+      return workHours
     },
-    [events, currentIndex.value]
+    [events, currentIndex.value, unavailableHours]
   );
+
+  //console.log("UNAVAILABLE SLOTS", JSON.stringify(currentDateSlots, null, 2))
+  /*console.log("UNAVAILABLE SLOTS", JSON.stringify(
+    events
+    .filter(ev => ev.start.includes(pages[viewMode].data[currentIndex.value]))
+    .map(ev => ({
+      start_dt: ev.start_dt,
+      end_dt: ev.end,
+      services: ev.services
+    })),
+    null,
+    2
+  ))*/
 
   const animatedStyles = useAnimatedStyle(() => {
     const curHour = currentHour.value
