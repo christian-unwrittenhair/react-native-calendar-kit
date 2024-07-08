@@ -103,19 +103,6 @@ export const DragCreateItem = ({
     [events, currentIndex.value, unavailableHours]
   );
 
-  //console.log("UNAVAILABLE SLOTS", JSON.stringify(currentDateSlots, null, 2))
-  /*console.log("UNAVAILABLE SLOTS", JSON.stringify(
-    events
-    .filter(ev => ev.start.includes(pages[viewMode].data[currentIndex.value]))
-    .map(ev => ({
-      start_dt: ev.start_dt,
-      end_dt: ev.end,
-      services: ev.services
-    })),
-    null,
-    2
-  ))*/
-
   const animatedStyles = useAnimatedStyle(() => {
     const curHour = currentHour.value
 
