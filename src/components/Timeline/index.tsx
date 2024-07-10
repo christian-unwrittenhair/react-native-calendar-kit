@@ -241,6 +241,7 @@ const Timeline: React.ForwardRefRenderFunction<TimelineCalendarHandle, TimelineP
     dragXPosition,
     dragYPosition,
     currentHour,
+    currentDate,
     onLongPress,
     draggingEvent,
     onLongEditEvent,
@@ -332,6 +333,7 @@ const Timeline: React.ForwardRefRenderFunction<TimelineCalendarHandle, TimelineP
             offsetX={dragXPosition}
             offsetY={dragYPosition}
             currentHour={currentHour}
+            currentDate={currentDate}
           />
         )}
         {isDraggingCreate && !!draggingEvent && (
@@ -340,6 +342,7 @@ const Timeline: React.ForwardRefRenderFunction<TimelineCalendarHandle, TimelineP
             offsetX={dragXPosition}
             offsetY={dragYPosition}
             currentHour={currentHour}
+            currentDate={currentDate}
             renderEventContent={other.renderEventContent}
           />
         )}

@@ -442,3 +442,17 @@ export const roundTo = (hour: number, step: number, type: 'up' | 'down') => {
   const nextMinutes = Math.floor(totalMinutes / step) * step;
   return nextMinutes / 60;
 };
+
+export const getDaysOfTheWeek = (date: string) => {
+  const givenDate = moment(date);
+
+  const startOfWeek = givenDate.clone().startOf('week');
+  const endOfWeek = givenDate.clone().endOf('week');
+
+  const weekDates = [];
+  for (let date = startOfWeek; date.isSameOrBefore(endOfWeek); date.add(1, 'days')) {
+    weekDates.push(date.clone().format('YYYY-MM-DD'));
+  }
+
+  return weekDates;
+}
