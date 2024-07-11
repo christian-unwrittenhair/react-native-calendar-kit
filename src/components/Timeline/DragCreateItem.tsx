@@ -11,11 +11,13 @@ import { DEFAULT_PROPS } from '../../constants';
 import { useTimelineCalendarContext } from '../../context/TimelineProvider';
 import type { PackedEvent, ThemeProperties, UnavailableHour } from '../../types';
 import { uniqBy, flatten } from "lodash";
+import { getDaysOfTheWeek } from "../../utils";
 
 interface DragCreateItemProps {
   offsetX: SharedValue<number>;
   offsetY: SharedValue<number>;
   currentHour: SharedValue<number>;
+  currentDate: SharedValue<string>;
   event?: PackedEvent;
   renderEventContent?: (
     event: PackedEvent,
@@ -27,6 +29,7 @@ export const DragCreateItem = ({
   offsetX,
   offsetY,
   currentHour,
+  currentDate,
   event,
   renderEventContent,
 }: DragCreateItemProps) => {
@@ -55,10 +58,12 @@ export const DragCreateItem = ({
           workHours = flatten(Object.values(unavailableHours))
         }
 
+        const datesToFilter = getDaysOfTheWeek(currentDate)
+
         const result = events
 
         //only include the slots on the current selected date
-        .filter((eventItem) => eventItem.start.includes(currentDate))
+        .filter((eventItem) => datesToFilter.includes(moment.tz(eventItem.start, tzOffset).format("YYYY-MM-DD")))
         .flatMap(eventItem => {
 
           const services = eventItem.consumer ? eventItem.services : [{ has_processing_time: false, duration: moment(eventItem.end).diff(moment(eventItem.start), 'minutes') }]
@@ -88,6 +93,7 @@ export const DragCreateItem = ({
               const endMinutes = parsedEndMinutes > 0 ? parsedEndMinutes / 60 : 0
 
               return {
+                date: moment.tz(eventItem.start, tzOffset).format("YYYY-M-D"),
                 start: parseFloat(startSplit[0]) + parseFloat(startMinutes),
                 end: parseFloat(endSplit[0]) + parseFloat(endMinutes),
               }
@@ -96,7 +102,7 @@ export const DragCreateItem = ({
         })
 
         //remove duplicate slots so there are lesser items to loop when doing checks
-        return uniqBy([...result, ...workHours], (slot) => `${slot.start}-${slot.end}`)
+        return uniqBy([...result, ...workHours], (slot) => `${slot.date}-${slot.start}-${slot.end}`)
       }
       return workHours
     },
@@ -126,7 +132,13 @@ export const DragCreateItem = ({
       const startTime = parseFloat(hourStr) + parseFloat(minutesStr / 60)
       const endTime = startTime + (event.duration)
 
-      isSlotTaken = currentDateSlots.some(slot => startTime < slot.end && slot.start < endTime)
+      isSlotTaken = currentDateSlots.some(slot => 
+        (
+          (!slot.date || slot.date === currentDate.value) &&
+          startTime < slot.end && 
+          slot.start < endTime
+        )
+      )
     }
 
     return {
@@ -137,7 +149,7 @@ export const DragCreateItem = ({
       backgroundColor: event ? (isSlotTaken ? "rgba(0, 0, 0, 0.4)" : "rgba(0, 255, 0, 0.4)") : theme.dragCreateItemBackgroundColor
     };
   });
-
+  
   return (
     <View style={StyleSheet.absoluteFill} pointerEvents="none">
       <Animated.View

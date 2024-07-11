@@ -58,6 +58,7 @@ const useDragCreateGesture = ({
   const [draggingEvent, setDraggingEvent] = useState<PackedEvent | null>(null);
 
   const currentHour = useSharedValue(0);
+  const currentDate = useSharedValue("");
   const dragXPosition = useSharedValue(0);
   const dragYPosition = useSharedValue(0);
   const startOffsetY = useRef(0);
@@ -77,6 +78,10 @@ const useDragCreateGesture = ({
     const roundedHour = roundTo(originalTime, nearestMinutes, 'up');
     const calcY = roundedHour * heightByTimeInterval.value;
     currentHour.value = roundedHour + start;
+
+    const startDate = new Date(pages[viewMode].data[currentIndex.value]);
+    startDate.setDate(startDate.getDate() + positionIndex);
+    currentDate.value = `${startDate.getFullYear()}-${startDate.getMonth() + 1}-${startDate.getDate()}`
 
     return {
       x: Math.max(0, calcX),
@@ -303,6 +308,7 @@ const useDragCreateGesture = ({
     dragYPosition,
     isDraggingCreate,
     currentHour,
+    currentDate,
     onLongPress,
     draggingEvent,
     onLongEditEvent,
