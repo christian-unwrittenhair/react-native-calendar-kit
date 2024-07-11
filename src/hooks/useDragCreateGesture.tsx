@@ -47,7 +47,6 @@ const useDragCreateGesture = ({
     viewMode,
     isDragCreateActive,
     useHaptic,
-    tzOffset,
     start,
     navigateDelay,
     heightByTimeInterval,
@@ -56,7 +55,7 @@ const useDragCreateGesture = ({
   const { goToNextPage, goToPrevPage, goToOffsetY } = useTimelineScroll();
 
   const [isDraggingCreate, setIsDraggingCreate] = useState(false);
-  const [draggingEvent, setDraggingEvent] = useState<PackedEvent>();
+  const [draggingEvent, setDraggingEvent] = useState<PackedEvent | null>(null);
 
   const currentHour = useSharedValue(0);
   const dragXPosition = useSharedValue(0);
@@ -234,9 +233,12 @@ const useDragCreateGesture = ({
       gestureEvent.value = event;
     })
     .onTouchesUp(() => {
-      if (isDragCreateActive.value) {
-        isTouchesUp.value = true;
-        isDragCreateActive.value = false;
+      if (draggingEvent === null) {
+        isDragCreateActive.value = false
+      }
+      isTouchesUp.value = true;
+      if (useHaptic) {
+        runOnJS(triggerHaptic)();
       }
     });
 
@@ -258,7 +260,7 @@ const useDragCreateGesture = ({
     () => isDragCreateActive.value,
     (active) => {
       if (!active) {
-        runOnJS(setDraggingEvent)(undefined);
+        runOnJS(setDraggingEvent)(null);
       }
       runOnJS(setIsDraggingCreate)(active);
     }
@@ -304,6 +306,8 @@ const useDragCreateGesture = ({
     onLongPress,
     draggingEvent,
     onLongEditEvent,
+    setDraggingEvent,
+    setIsDraggingCreate,
   };
 };
 

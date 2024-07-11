@@ -83,6 +83,7 @@ const Timeline: React.ForwardRefRenderFunction<TimelineCalendarHandle, TimelineP
     start,
     verticalListRef,
     allowEventHoldToDragEvent,
+    isDragCreateActive,
   } = useTimelineCalendarContext();
   const { goToNextPage, goToPrevPage, goToOffsetY } = useTimelineScroll();
 
@@ -244,6 +245,8 @@ const Timeline: React.ForwardRefRenderFunction<TimelineCalendarHandle, TimelineP
     onLongPress,
     draggingEvent,
     onLongEditEvent,
+    setDraggingEvent,
+    setIsDraggingCreate,
   } = useDragCreateGesture({
     onDragCreateEnd,
     onDragEditEnd: other.onEndDragSelectedEvent,
@@ -260,6 +263,9 @@ const Timeline: React.ForwardRefRenderFunction<TimelineCalendarHandle, TimelineP
   };
 
   const _onLongPressEvent = (event: PackedEvent) => {
+    setDraggingEvent(null);
+    setIsDraggingCreate(false);
+    isDragCreateActive.value = false
     if (allowEventHoldToDragEvent) {
       onLongEditEvent(event);
     }
@@ -294,6 +300,21 @@ const Timeline: React.ForwardRefRenderFunction<TimelineCalendarHandle, TimelineP
   const _onScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
     offsetY.value = e.nativeEvent.contentOffset.y;
   };
+
+  useEffect(() => {
+    if (!selectedEvent) {
+      dragXPosition.value = 0;
+      dragYPosition.value = 0;
+      currentHour.value = 0;
+      setDraggingEvent(null);
+      setIsDraggingCreate(false);
+      isDragCreateActive.value = false
+    }
+    if (selectedEvent) { 
+      isDragCreateActive.value = true
+      setDraggingEvent(selectedEvent)
+    }
+  }, [selectedEvent, dragXPosition, dragYPosition, currentHour, setDraggingEvent, setIsDraggingCreate]);
 
   return (
     <GestureHandlerRootView style={[styles.container, { backgroundColor: theme.backgroundColor }]}>
@@ -334,7 +355,7 @@ const Timeline: React.ForwardRefRenderFunction<TimelineCalendarHandle, TimelineP
             currentHour={currentHour}
           />
         )}
-        {isDraggingCreate && !!draggingEvent && (
+        {isDraggingCreate && !!draggingEvent && !!selectedEvent?.id && (
           <DragCreateItem
             event={draggingEvent}
             offsetX={dragXPosition}
