@@ -54,17 +54,36 @@ export const DragCreateItem = ({
       let workHours: UnavailableHour[] = []
       const currentDate = pages[viewMode].data[currentIndex.value]
       if(currentDate) {
-        if(unavailableHours) {
-          workHours = flatten(Object.values(unavailableHours))
-        }
-
         const datesToFilter = getDaysOfTheWeek(currentDate)
+
+        if(unavailableHours) {          
+          if(Array.isArray(unavailableHours)) {
+            workHours = unavailableHours.map((workHour: UnavailableHour) => ({ 
+              date: moment(currentDate).format("YYYY-M-D"), 
+              ...workHour,
+            }))
+          }
+          else {
+            workHours = flatten(
+              Object.keys(unavailableHours)
+              .map(key => (
+                unavailableHours[key]
+                .map((workHour: UnavailableHour) => ({ 
+                  date: moment(datesToFilter[parseInt(key)]).format("YYYY-M-D"), 
+                  ...workHour
+                }))
+              ))
+            )
+          }
+        }
 
         const result = events
 
         //only include the slots on the current selected date
         .filter((eventItem) => datesToFilter.includes(moment.tz(eventItem.start, tzOffset).format("YYYY-MM-DD")))
         .flatMap(eventItem => {
+
+          const formattedStartDate = moment.tz(eventItem.start, tzOffset).format("YYYY-M-D")
 
           const services = eventItem.consumer ? eventItem.services : [{ has_processing_time: false, duration: moment(eventItem.end).diff(moment(eventItem.start), 'minutes') }]
           
@@ -93,7 +112,8 @@ export const DragCreateItem = ({
               const endMinutes = parsedEndMinutes > 0 ? parsedEndMinutes / 60 : 0
 
               return {
-                date: moment.tz(eventItem.start, tzOffset).format("YYYY-M-D"),
+                id: eventItem.id,
+                date: formattedStartDate,
                 start: parseFloat(startSplit[0]) + parseFloat(startMinutes),
                 end: parseFloat(endSplit[0]) + parseFloat(endMinutes),
               }
@@ -134,7 +154,8 @@ export const DragCreateItem = ({
 
       isSlotTaken = currentDateSlots.some(slot => 
         (
-          (!slot.date || slot.date === currentDate.value) &&
+          slot.id !== event.id &&
+          slot.date === currentDate.value &&
           startTime < slot.end && 
           slot.start < endTime
         )
