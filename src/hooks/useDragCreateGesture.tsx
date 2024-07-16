@@ -250,7 +250,7 @@ const useDragCreateGesture = ({
   useAnimatedReaction(
     () => isTouchesUp.value,
     (touchesUp) => {
-      if (touchesUp) {
+      if (touchesUp && gestureEvent.value) {
         runOnJS(_onEnd)({
           x: dragXPosition.value,
           y: dragYPosition.value + offsetY.value - spaceFromTop,
