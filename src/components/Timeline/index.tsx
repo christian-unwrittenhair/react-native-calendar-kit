@@ -122,6 +122,14 @@ const Timeline: React.ForwardRefRenderFunction<TimelineCalendarHandle, TimelineP
       goToNextPage: goToNextPage,
       goToPrevPage: goToPrevPage,
       getZones: () => Object.values(timeZoneData),
+      cancelDrag: () => {
+        dragXPosition.value = 0;
+        dragYPosition.value = 0;
+        currentHour.value = 0;
+        setDraggingEvent(null);
+        setIsDraggingCreate(false);
+        isDragCreateActive.value = false
+      },
       getZone: (key: keyof typeof timeZoneData) => timeZoneData[key],
       getHour: () => {
         const position = Math.max(0, offsetY.value - spaceFromTop + 8);
