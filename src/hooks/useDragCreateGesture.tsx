@@ -88,67 +88,79 @@ const useDragCreateGesture = ({
       y: calcY + spaceFromTop - offsetY.value,
     };
   };
+
+  const debounce = (func: (...args: any[]) => void, wait: number) => {
+    let timeout: NodeJS.Timeout;
+    return (...args: any[]) => {
+      clearTimeout(timeout);
+      timeout = setTimeout(() => func(...args), wait);
+    };
+  };
+  
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const _handleScroll = (x: number) => {
-    if (timeoutRef.current && x > hourWidth && x < timelineWidth - 25) {
+
+const _handleScroll = debounce((x: number) => {
+  const clearScrollTimeout = () => {
+    if (timeoutRef.current) {
       clearInterval(timeoutRef.current);
       timeoutRef.current = null;
     }
-    if (x <= hourWidth) {
-      if (isScrolling.current || timeoutRef.current) {
-        return;
-      }
-      timeoutRef.current = setInterval(() => {
-        goToPrevPage(true);
-      }, navigateDelay);
-    }
-    if (x >= timelineWidth - 25) {
-      if (isScrolling.current || timeoutRef.current) {
-        return;
-      }
-      timeoutRef.current = setInterval(() => {
-        goToNextPage(true);
-      }, navigateDelay);
-    }
+  };
 
-    const scrollTargetDiff = Math.abs(startOffsetY.current - offsetY.value);
-    const scrollInProgress = scrollTargetDiff > 3;
-    if (scrollInProgress) {
-      return;
-    }
-
-    const startY = dragYPosition.value - spaceFromTop;
-    if (startY < 3 && offsetY.value > 0) {
-      const targetOffset = Math.max(
-        0,
-        offsetY.value - timeIntervalHeight.value * 3
-      );
-      startOffsetY.current = targetOffset;
-      goToOffsetY(targetOffset);
-      verticalListRef.current?.scrollTo({
-        y: targetOffset,
-        animated: true,
-      });
-    }
-
-    const subtractHour = (dragCreateInterval / 60) * timeIntervalHeight.value;
-    const yInPage = dragYPosition.value + subtractHour + spaceFromTop;
-    const pageSize = timelineLayoutRef.current.height;
-    const currentY = startY + offsetY.value + subtractHour;
-    const timelineHeight = totalHours * timeIntervalHeight.value;
-    if (yInPage > pageSize - 3 && currentY < timelineHeight) {
-      const spacingInBottomAndTop = spaceFromTop + spaceFromBottom;
-      const maxOffsetY = timelineHeight + spacingInBottomAndTop - pageSize;
-      const nextOffset = offsetY.value + timeIntervalHeight.value * 3;
-      const targetOffset = Math.min(maxOffsetY, nextOffset);
-      startOffsetY.current = targetOffset;
-      goToOffsetY(targetOffset);
-      verticalListRef.current?.scrollTo({
-        y: targetOffset,
-        animated: true,
-      });
+  const setScrollTimeout = (directionFn: () => void) => {
+    if (!isScrolling.current && !timeoutRef.current) {
+      timeoutRef.current = setInterval(directionFn, navigateDelay);
     }
   };
+
+  clearScrollTimeout();
+
+  if (x <= hourWidth) {
+    setScrollTimeout(() => goToPrevPage(true));
+  } else if (x >= timelineWidth - 25) {
+    setScrollTimeout(() => goToNextPage(true));
+  }
+
+  const scrollTargetDiff = Math.abs(startOffsetY.current - offsetY.value);
+  const scrollInProgress = scrollTargetDiff > 3;
+
+  if (scrollInProgress && draggingEvent === null) {
+    return;
+  }
+
+  const startY = dragYPosition.value - spaceFromTop;
+  if (startY < 3 && offsetY.value > 0) {
+    const targetOffset = Math.max(
+      0,
+      offsetY.value - timeIntervalHeight.value * 3
+    );
+    startOffsetY.current = targetOffset;
+    goToOffsetY(targetOffset);
+    verticalListRef.current?.scrollTo({
+      y: targetOffset,
+      animated: true,
+    });
+  }
+
+  const subtractHour = (dragCreateInterval / 60) * timeIntervalHeight.value;
+  const yInPage = dragYPosition.value + subtractHour + spaceFromTop;
+  const pageSize = timelineLayoutRef.current.height;
+  const currentY = startY + offsetY.value + subtractHour;
+  const timelineHeight = totalHours * timeIntervalHeight.value;
+
+  if (yInPage > pageSize - 3 && currentY < timelineHeight) {
+    const spacingInBottomAndTop = spaceFromTop + spaceFromBottom;
+    const maxOffsetY = timelineHeight + spacingInBottomAndTop - pageSize;
+    const nextOffset = offsetY.value + timeIntervalHeight.value * 3;
+    const targetOffset = Math.min(maxOffsetY, nextOffset);
+    startOffsetY.current = targetOffset;
+    goToOffsetY(targetOffset);
+    verticalListRef.current?.scrollTo({
+      y: targetOffset,
+      animated: true,
+    });
+  }
+}, draggingEvent === undefined ? 0 : 20); 
 
   const _onEnd = (event: { x: number; y: number }) => {
     if (timeoutRef.current) {
@@ -266,7 +278,7 @@ const useDragCreateGesture = ({
     (active) => {
       if (!active) {
         runOnJS(setDraggingEvent)(null);
-      }
+      } 
       runOnJS(setIsDraggingCreate)(active);
     }
   );
