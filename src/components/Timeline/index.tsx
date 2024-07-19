@@ -322,6 +322,7 @@ const Timeline: React.ForwardRefRenderFunction<TimelineCalendarHandle, TimelineP
     if (selectedEvent) { 
       isDragCreateActive.value = true
       setDraggingEvent(selectedEvent)
+      currentHour.value = selectedEvent.startHour
     }
   }, [selectedEvent, dragXPosition, dragYPosition, currentHour, setDraggingEvent, setIsDraggingCreate]);
 
