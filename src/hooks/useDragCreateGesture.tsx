@@ -160,13 +160,16 @@ const _handleScroll = debounce((x: number) => {
       animated: true,
     });
   }
-}, draggingEvent === undefined ? 0 : 20); 
+}, draggingEvent === undefined ? 0 : 18); 
 
-  const _onEnd = (event: { x: number; y: number }) => {
-    if (timeoutRef.current) {
-      clearInterval(timeoutRef.current);
-      timeoutRef.current = null;
+  const _onEnd = debounce((event: { x: number; y: number }) => {
+    const clearOnEndTimeout = () => {
+      if (timeoutRef.current) {
+        clearInterval(timeoutRef.current);
+        timeoutRef.current = null;
+      }
     }
+    clearOnEndTimeout();
     const time = event.y / heightByTimeInterval.value;
     const positionIndex = Math.round(event.x / columnWidth);
     const startDate = pages[viewMode].data[currentIndex.value];
@@ -201,7 +204,7 @@ const _handleScroll = debounce((x: number) => {
         end: eventEnd.toISOString(),
       });
     }
-  };
+  }, 10);
 
   const gestureEvent = useSharedValue<
     GestureUpdateEvent<PanGestureHandlerEventPayload> | undefined
@@ -259,19 +262,21 @@ const _handleScroll = debounce((x: number) => {
       }
     });
 
-  useAnimatedReaction(
-    () => isTouchesUp.value,
-    (touchesUp) => {
-      if (touchesUp && gestureEvent.value) {
-        runOnJS(_onEnd)({
-          x: dragXPosition.value,
-          y: dragYPosition.value + offsetY.value - spaceFromTop,
-        });
-        gestureEvent.value = undefined;
-        isTouchesUp.value = false;
+    useAnimatedReaction(
+      () => isTouchesUp.value,
+      (touchesUp) => {
+        if (touchesUp && gestureEvent.value) {
+          runOnJS(_onEnd)({
+            x: dragXPosition.value,
+            y: dragYPosition.value + offsetY.value - spaceFromTop,
+          });
+          if (draggingEvent == null) {
+            gestureEvent.value = undefined;
+          }
+          isTouchesUp.value = false;
+        }
       }
-    }
-  );
+    );
 
   useAnimatedReaction(
     () => isDragCreateActive.value,
