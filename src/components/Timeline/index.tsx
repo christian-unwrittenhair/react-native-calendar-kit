@@ -129,6 +129,7 @@ const Timeline: React.ForwardRefRenderFunction<TimelineCalendarHandle, TimelineP
         setDraggingEvent(null);
         setIsDraggingCreate(false);
         isDragCreateActive.value = false
+        gestureEvent.value = undefined;
       },
       getZone: (key: keyof typeof timeZoneData) => timeZoneData[key],
       getHour: () => {
@@ -256,6 +257,7 @@ const Timeline: React.ForwardRefRenderFunction<TimelineCalendarHandle, TimelineP
     onLongEditEvent,
     setDraggingEvent,
     setIsDraggingCreate,
+    gestureEvent,
   } = useDragCreateGesture({
     onDragCreateEnd,
     onDragEditEnd: other.onEndDragSelectedEvent,
@@ -268,18 +270,19 @@ const Timeline: React.ForwardRefRenderFunction<TimelineCalendarHandle, TimelineP
     if (allowDragToCreate && !selectedEvent) {
       onLongPress(event);
     }
-    onLongPressBackground?.(date, event);
+      onLongPressBackground?.(date, event);
   };
 
   const _onLongPressEvent = (event: PackedEvent) => {
-    setDraggingEvent(null);
+    // setDraggingEvent(null);
     setIsDraggingCreate(false);
     isDragCreateActive.value = false
     if (allowEventHoldToDragEvent) {
       onLongEditEvent(event);
     }
-
-    onLongPressEvent?.(event);
+    if (selectedEvent == undefined) {
+      onLongPressEvent?.(event);
+    }
   };
 
   const groupedEvents = useMemo(
@@ -311,20 +314,20 @@ const Timeline: React.ForwardRefRenderFunction<TimelineCalendarHandle, TimelineP
   };
 
   useEffect(() => {
-    if (!selectedEvent) {
+    if (selectedEvent) { 
+      isDragCreateActive.value = true
+      setDraggingEvent(selectedEvent)
+      currentHour.value = selectedEvent.startHour
+    } else {
       dragXPosition.value = 0;
       dragYPosition.value = 0;
       currentHour.value = 0;
       setDraggingEvent(null);
       setIsDraggingCreate(false);
       isDragCreateActive.value = false
+      gestureEvent.value = undefined;
     }
-    if (selectedEvent) { 
-      isDragCreateActive.value = true
-      setDraggingEvent(selectedEvent)
-      currentHour.value = selectedEvent.startHour
-    }
-  }, [selectedEvent, dragXPosition, dragYPosition, currentHour, setDraggingEvent, setIsDraggingCreate]);
+  }, [selectedEvent, dragXPosition, dragYPosition, currentHour, setDraggingEvent, setIsDraggingCreate, gestureEvent]);
 
   return (
     <GestureHandlerRootView style={[styles.container, { backgroundColor: theme.backgroundColor }]}>

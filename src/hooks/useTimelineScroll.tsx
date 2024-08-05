@@ -9,6 +9,7 @@ const useTimelineScroll = () => {
     isScrolling,
     timelineVerticalListRef,
     viewMode,
+    verticalListRef,
   } = useTimelineCalendarContext();
 
   const goToNextPage = useCallback(
@@ -57,10 +58,21 @@ const useTimelineScroll = () => {
     [timelineVerticalListRef]
   );
 
+  const goToOffsetYVertical = useCallback(
+    (target: number, animated?: boolean) => {
+      verticalListRef.current?.scrollTo({
+        y: target,
+        animated,
+      });
+    },
+    [verticalListRef]
+  );
+
   return {
     goToPrevPage,
     goToNextPage,
     goToOffsetY,
+    goToOffsetYVertical,
   };
 };
 

@@ -98,7 +98,6 @@ const useDragCreateGesture = ({
   };
   
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-
 const _handleScroll = debounce((x: number) => {
   const clearScrollTimeout = () => {
     if (timeoutRef.current) {
@@ -132,9 +131,10 @@ const _handleScroll = debounce((x: number) => {
   if (startY < 3 && offsetY.value > 0) {
     const targetOffset = Math.max(
       0,
-      offsetY.value - timeIntervalHeight.value * 3
+      offsetY.value - timeIntervalHeight.value * 1.5
     );
     startOffsetY.current = targetOffset;
+    
     goToOffsetY(targetOffset);
     verticalListRef.current?.scrollTo({
       y: targetOffset,
@@ -151,7 +151,7 @@ const _handleScroll = debounce((x: number) => {
   if (yInPage > pageSize - 3 && currentY < timelineHeight) {
     const spacingInBottomAndTop = spaceFromTop + spaceFromBottom;
     const maxOffsetY = timelineHeight + spacingInBottomAndTop - pageSize;
-    const nextOffset = offsetY.value + timeIntervalHeight.value * 3;
+    const nextOffset = offsetY.value + timeIntervalHeight.value * 1.5;
     const targetOffset = Math.min(maxOffsetY, nextOffset);
     startOffsetY.current = targetOffset;
     goToOffsetY(targetOffset);
@@ -160,7 +160,7 @@ const _handleScroll = debounce((x: number) => {
       animated: true,
     });
   }
-}, draggingEvent === undefined ? 0 : 18); 
+}, draggingEvent === undefined ? 0 : 10); 
 
   const _onEnd = debounce((event: { x: number; y: number }) => {
     const clearOnEndTimeout = () => {
@@ -183,7 +183,6 @@ const _handleScroll = debounce((x: number) => {
     if (isBeforeMinDate || isAfterMaxDate) {
       return;
     }
-
     const eventEnd = eventStart.clone().add(dragCreateInterval, 'm');
     if (draggingEvent) {
       onDragEditEnd?.({
@@ -239,6 +238,7 @@ const _handleScroll = debounce((x: number) => {
       if (event.numberOfTouches > 1) {
         stateManager.fail();
         isDragCreateActive.value = false;
+        gestureEvent.value = undefined; 
       }
     })
     .onTouchesMove((_e, stateManager) => {
@@ -289,6 +289,7 @@ const _handleScroll = debounce((x: number) => {
   );
 
   const onLongPress = (e: GestureResponderEvent) => {
+    // gestureEvent.value = undefined; 
     isDragCreateActive.value = true;
     const posX = e.nativeEvent.locationX + hourWidth;
     const posY = e.nativeEvent.locationY + spaceFromTop - offsetY.value;
@@ -302,6 +303,7 @@ const _handleScroll = debounce((x: number) => {
   };
 
   const onLongEditEvent = (event: PackedEvent) => {
+    // gestureEvent.value = undefined; 
     isDragCreateActive.value = true;
     currentHour.value = event.startHour;
     setDraggingEvent(event);
@@ -331,6 +333,7 @@ const _handleScroll = debounce((x: number) => {
     onLongEditEvent,
     setDraggingEvent,
     setIsDraggingCreate,
+    gestureEvent,
   };
 };
 
