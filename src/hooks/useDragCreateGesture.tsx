@@ -17,6 +17,7 @@ import { useTimelineCalendarContext } from '../context/TimelineProvider';
 import { roundTo, triggerHaptic } from '../utils';
 import type { PackedEvent } from '../types';
 import useTimelineScroll from './useTimelineScroll';
+import { throttle } from 'lodash';
 
 interface useDragCreateGesture {
   onDragCreateEnd?: (data: { start: string; end: string }) => void;
@@ -98,7 +99,7 @@ const useDragCreateGesture = ({
   };
   
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-const _handleScroll = debounce((x: number) => {
+const _handleScroll = throttle((x: number) => {
   const clearScrollTimeout = () => {
     if (timeoutRef.current) {
       clearInterval(timeoutRef.current);
@@ -131,7 +132,7 @@ const _handleScroll = debounce((x: number) => {
   if (startY < 3 && offsetY.value > 0) {
     const targetOffset = Math.max(
       0,
-      offsetY.value - timeIntervalHeight.value * 1.5
+      offsetY.value - timeIntervalHeight.value * 1.2
     );
     startOffsetY.current = targetOffset;
     
@@ -151,7 +152,7 @@ const _handleScroll = debounce((x: number) => {
   if (yInPage > pageSize - 3 && currentY < timelineHeight) {
     const spacingInBottomAndTop = spaceFromTop + spaceFromBottom;
     const maxOffsetY = timelineHeight + spacingInBottomAndTop - pageSize;
-    const nextOffset = offsetY.value + timeIntervalHeight.value * 1.5;
+    const nextOffset = offsetY.value + timeIntervalHeight.value * 1.2;
     const targetOffset = Math.min(maxOffsetY, nextOffset);
     startOffsetY.current = targetOffset;
     goToOffsetY(targetOffset);
@@ -160,9 +161,9 @@ const _handleScroll = debounce((x: number) => {
       animated: true,
     });
   }
-}, draggingEvent === undefined ? 0 : 10); 
+}, 100); 
 
-  const _onEnd = debounce((event: { x: number; y: number }) => {
+  const _onEnd = throttle((event: { x: number; y: number }) => {
     const clearOnEndTimeout = () => {
       if (timeoutRef.current) {
         clearInterval(timeoutRef.current);
@@ -203,7 +204,7 @@ const _handleScroll = debounce((x: number) => {
         end: eventEnd.toISOString(),
       });
     }
-  }, 10);
+  }, 100);
 
   const gestureEvent = useSharedValue<
     GestureUpdateEvent<PanGestureHandlerEventPayload> | undefined
