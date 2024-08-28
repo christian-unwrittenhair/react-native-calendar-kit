@@ -128,7 +128,7 @@ const TimelineHeader = ({
     const listProps = {
       ref: dayBarListRef,
       keyExtractor: (item: string) => item,
-      scrollEnabled: true,
+      scrollEnabled: false,
       disableHorizontalListHeightMeasurement: true,
       showsHorizontalScrollIndicator: false,
       horizontal: true,
