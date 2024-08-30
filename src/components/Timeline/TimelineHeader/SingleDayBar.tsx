@@ -3,7 +3,6 @@ import React from 'react';
 import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { DEFAULT_PROPS } from '../../../constants';
 import type { DayBarItemProps } from '../../../types';
-import { getDayBarStyle } from '../../../utils';
 import useTimelineScroll from '../../../hooks/useTimelineScroll';
 
 const SingleDayBar = ({
@@ -11,50 +10,38 @@ const SingleDayBar = ({
   startDate,
   theme,
   locale,
-  highlightDates,
-  onPressDayNum,
-  currentDate,
   tzOffset,
+  currentDate
 }: DayBarItemProps) => {
 
-  const { goToNextPage, goToPrevPage, goToOffsetY } = useTimelineScroll();
+  const { goToNextPage, goToPrevPage } = useTimelineScroll();
+
   
   const _renderDay = () => {
     const dateByIndex = moment.tz(startDate, tzOffset);
-    const dateStr = dateByIndex.format('YYYY-MM-DD');
     const [dayNameText, dayNum] = dateByIndex
       .locale(locale)
       .format('dddd, Do')
       .split(',');
-    const highlightDate = highlightDates?.[dateStr];
 
-    const { dayName, dayNumber, dayNumberContainer } = getDayBarStyle(
-      currentDate,
-      dateByIndex,
-      theme,
-      highlightDate
-    );
+    const isCurrentDate = currentDate === startDate
 
     return (
-      <View style={styles.dayItem}>
-        {/* <Text
-          allowFontScaling={theme.allowFontScaling}
-          style={[styles.dayName, dayName]}
-        >
-          {dayNameText}
-        </Text> */}
-        <TouchableOpacity
-          activeOpacity={0.6}
+      <View style={[styles.dayItem, isCurrentDate && styles.activeDateContainer ]}>
+        <View
           style={styles.dayNumBtn}
         >
           <Text
             allowFontScaling={theme.allowFontScaling}
-            style={styles.dayNumber}
+            style={[
+              styles.dayNumber,
+              isCurrentDate && styles.activeDateText
+            ]}
           >
             {dayNameText}
             {dayNum}
           </Text>
-        </TouchableOpacity>
+        </View>
       </View>
     );
   };
@@ -66,12 +53,12 @@ const SingleDayBar = ({
         { width, height: DEFAULT_PROPS.DAY_BAR_HEIGHT },
       ]}
     >
-      <TouchableOpacity style={styles.arrow} onPress={() => goToPrevPage(true)}>
+      <TouchableOpacity style={[styles.arrow, styles.arrowLeft]} onPress={() => goToPrevPage(true)}>
         <Image source={require("../../../assets/left_arrow.png")} />
         </TouchableOpacity>
         {_renderDay()}
-      <TouchableOpacity style={styles.arrow} onPress={() => goToNextPage(true)}>
-      <Image source={require("../../../assets/right_arrow.png")} />
+      <TouchableOpacity style={[styles.arrow, styles.arrowRight]} onPress={() => goToNextPage(true)}>
+        <Image source={require("../../../assets/right_arrow.png")} />
       </TouchableOpacity>
     </View>
   );
@@ -86,7 +73,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     padding: 10,
   },
-  dayItem: { alignItems: 'center', marginHorizontal: 30},
+  dayItem: { 
+    alignItems: 'center',
+    paddingHorizontal: 5
+  },
   dayNumBtn: {
     alignItems: 'center',
     justifyContent: 'center',
@@ -94,9 +84,26 @@ const styles = StyleSheet.create({
     marginTop: 2,
     width: 'auto',
     height: 28,
-    padding: 5
+    padding: 5,
+  },
+  activeDateContainer: {
+    backgroundColor: "#F06D76",
+    borderRadius: 20,
+  },
+  activeDateText: {
+    color: "white"
   },
   dayName: { color: DEFAULT_PROPS.SECONDARY_COLOR, fontSize: 12 },
-  dayNumber: { color: DEFAULT_PROPS.SECONDARY_COLOR, fontSize: 18 },
-  arrow: { padding: 10}
+  dayNumber: { color: DEFAULT_PROPS.SECONDARY_COLOR, fontSize: 18, lineHeight: 18 },
+  arrow: { 
+    paddingVertical: 10, 
+    width: '20%', 
+  },
+  arrowLeft: {
+    paddingRight: 20,
+    alignItems: "flex-end"
+  },
+  arrowRight: {
+    paddingLeft: 20
+  }
 });
