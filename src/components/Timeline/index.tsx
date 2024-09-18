@@ -405,6 +405,8 @@ const Timeline: React.ForwardRefRenderFunction<TimelineCalendarHandle, TimelineP
               onLongPressEvent={_onLongPressEvent}
               onLongPressBackground={_onLongPressBackground}
             />
+
+            <View style={{ height: 45 }} />
           </AnimatedScrollView>
         </GestureDetector>
 
