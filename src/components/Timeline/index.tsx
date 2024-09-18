@@ -12,6 +12,7 @@ import {
   View,
   NativeSyntheticEvent,
   NativeScrollEvent,
+  Dimensions
 } from 'react-native';
 import {
   Gesture,
@@ -35,6 +36,20 @@ import { clampValues, groupEventsByDate } from '../../utils';
 import DragCreateItem from './DragCreateItem';
 import TimelineHeader from './TimelineHeader';
 import TimelineSlots from './TimelineSlots';
+
+const DEVICE_HEIGHT = Dimensions.get('window').height
+
+const HEIGHT_THRESHOLDS = {
+  large: {
+    minimumVisibleHour: 16
+  },
+  mid: {
+    minimumVisibleHour: 17
+  },
+  small: {
+    minimumVisibleHour: 18
+  }
+}
 
 const AnimatedScrollView = Animated.createAnimatedComponent(ScrollView);
 
@@ -84,6 +99,7 @@ const Timeline: React.ForwardRefRenderFunction<TimelineCalendarHandle, TimelineP
     verticalListRef,
     allowEventHoldToDragEvent,
     isDragCreateActive,
+    columnWidth
   } = useTimelineCalendarContext();
   const { goToNextPage, goToPrevPage, goToOffsetY } = useTimelineScroll();
 
@@ -313,6 +329,38 @@ const Timeline: React.ForwardRefRenderFunction<TimelineCalendarHandle, TimelineP
     offsetY.value = e.nativeEvent.contentOffset.y;
   };
 
+  const _onScrollEnd = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const contentHeight = e.nativeEvent.contentSize.height;
+    const scrollOffsetY = e.nativeEvent.contentOffset.y;
+    const scrollHeight = e.nativeEvent.layoutMeasurement.height;
+
+    if(!selectedEvent) {
+      return
+    }
+
+    const cannotScroll = scrollOffsetY + scrollHeight >= contentHeight
+    const MULTIPLIER = 90
+
+    if(cannotScroll) {
+      if(DEVICE_HEIGHT > 900) {
+        dragYPosition.value = ((selectedEvent.startHour - HEIGHT_THRESHOLDS.large.minimumVisibleHour) * MULTIPLIER) + 5
+      }
+      else if(DEVICE_HEIGHT < 830) {
+        dragYPosition.value = ((selectedEvent.startHour - HEIGHT_THRESHOLDS.small.minimumVisibleHour) * MULTIPLIER) + 72
+      }
+      else {
+        dragYPosition.value = ((selectedEvent.startHour - HEIGHT_THRESHOLDS.mid.minimumVisibleHour) * MULTIPLIER) + 13
+      }
+    }
+    else {
+      dragYPosition.value += 5
+    }
+
+    if(viewMode === 'week') {
+      dragXPosition.value = moment.tz(selectedEvent.start, tzOffset).day() * columnWidth
+    }
+  }
+
   useEffect(() => {
     if (selectedEvent) { 
       isDragCreateActive.value = true
@@ -349,6 +397,7 @@ const Timeline: React.ForwardRefRenderFunction<TimelineCalendarHandle, TimelineP
             showsVerticalScrollIndicator={false}
             onScroll={_onScroll}
             simultaneousHandlers={pinchGestureRef}
+            onMomentumScrollEnd={_onScrollEnd}
           >
             <TimelineSlots
               {...other}

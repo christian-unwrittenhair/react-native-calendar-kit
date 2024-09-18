@@ -18,7 +18,6 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useTimelineCalendarContext } from '../../context/TimelineProvider';
 import type { EventItem, PackedEvent, UnavailableItemProps } from '../../types';
-import DragEditItem from './DragEditItem';
 import TimelineHours from './TimelineHours';
 import TimelinePage from './TimelinePage';
 
@@ -77,7 +76,6 @@ const TimelineSlots = ({
     dayBarListRef,
     currentIndex,
     rightSideWidth,
-    offsetY,
     isScrolling,
     allowDragToCreate,
     pinchRef,
@@ -253,15 +251,6 @@ const TimelineSlots = ({
       >
         {_renderSlots()}
       </Animated.View>
-      {/* {!!selectedEvent?.id && (
-        <DragEditItem
-          selectedEvent={selectedEvent}
-          onEndDragSelectedEvent={onEndDragSelectedEvent}
-          isEnabled={editEventGestureEnabled}
-          EditIndicatorComponent={EditIndicatorComponent}
-          renderEventContent={renderSelectedEventContent || renderEventContent}
-        />
-      )} */}
     </ScrollView>
   );
 };
