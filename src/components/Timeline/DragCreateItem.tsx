@@ -162,11 +162,14 @@ export const DragCreateItem = ({
       )
     }
 
+    // this ensures that in day view, the mask is horizontally positioned on the most left side
+    const translateX = viewMode === 'week' ? offsetX.value : 0
+
     return {
       height:
         (event ? event.duration : dragCreateInterval / 60) *
         heightByTimeInterval.value,
-      transform: [{ translateX: offsetX.value }, { translateY: offsetY.value }],
+      transform: [{ translateX }, { translateY: offsetY.value }],
       backgroundColor: event ? (isSlotTaken ? "rgba(0, 0, 0, 0.4)" : "rgba(0, 255, 0, 0.4)") : theme.dragCreateItemBackgroundColor
     };
   });
