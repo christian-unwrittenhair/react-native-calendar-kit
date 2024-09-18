@@ -274,8 +274,8 @@ const _handleScroll = throttle((x: number) => {
           if (draggingEvent == null) {
             gestureEvent.value = undefined;
           }
-          isTouchesUp.value = false;
         }
+        isTouchesUp.value = false;
       }
     );
 
