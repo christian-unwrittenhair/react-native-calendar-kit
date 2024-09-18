@@ -39,18 +39,6 @@ import TimelineSlots from './TimelineSlots';
 
 const DEVICE_HEIGHT = Dimensions.get('window').height
 
-const HEIGHT_THRESHOLDS = {
-  large: {
-    minimumVisibleHour: 16
-  },
-  mid: {
-    minimumVisibleHour: 17
-  },
-  small: {
-    minimumVisibleHour: 18
-  }
-}
-
 const AnimatedScrollView = Animated.createAnimatedComponent(ScrollView);
 
 const Timeline: React.ForwardRefRenderFunction<TimelineCalendarHandle, TimelineProps> = (
@@ -343,13 +331,13 @@ const Timeline: React.ForwardRefRenderFunction<TimelineCalendarHandle, TimelineP
 
     if(cannotScroll) {
       if(DEVICE_HEIGHT > 900) {
-        dragYPosition.value = ((selectedEvent.startHour - HEIGHT_THRESHOLDS.large.minimumVisibleHour) * MULTIPLIER) + 5
+        dragYPosition.value = ((selectedEvent.startHour - 16) * MULTIPLIER) + 5
       }
       else if(DEVICE_HEIGHT < 830) {
-        dragYPosition.value = ((selectedEvent.startHour - HEIGHT_THRESHOLDS.small.minimumVisibleHour) * MULTIPLIER) + 72
+        dragYPosition.value = ((selectedEvent.startHour - 18) * MULTIPLIER) + 72
       }
       else {
-        dragYPosition.value = ((selectedEvent.startHour - HEIGHT_THRESHOLDS.mid.minimumVisibleHour) * MULTIPLIER) + 13
+        dragYPosition.value = ((selectedEvent.startHour - 17) * MULTIPLIER) + 13
       }
     }
     else {
@@ -376,6 +364,15 @@ const Timeline: React.ForwardRefRenderFunction<TimelineCalendarHandle, TimelineP
       gestureEvent.value = undefined;
     }
   }, [selectedEvent, dragXPosition, dragYPosition, currentHour, setDraggingEvent, setIsDraggingCreate, gestureEvent]);
+
+  const dragCreateItemProps = {
+    offsetX: dragXPosition,
+    offsetY: dragYPosition,
+    currentHour: currentHour,
+    currentDate: currentDate,
+    event: draggingEvent ?? undefined,
+    renderEventContent: other.renderEventContent ?? undefined
+  }
 
   return (
     <GestureHandlerRootView style={[styles.container, { backgroundColor: theme.backgroundColor }]}>
@@ -410,24 +407,8 @@ const Timeline: React.ForwardRefRenderFunction<TimelineCalendarHandle, TimelineP
             />
           </AnimatedScrollView>
         </GestureDetector>
-        {isDraggingCreate && !draggingEvent && (
-          <DragCreateItem
-            offsetX={dragXPosition}
-            offsetY={dragYPosition}
-            currentHour={currentHour}
-            currentDate={currentDate}
-          />
-        )}
-        {isDraggingCreate && !!draggingEvent && !!selectedEvent?.id && (
-          <DragCreateItem
-            event={draggingEvent}
-            offsetX={dragXPosition}
-            offsetY={dragYPosition}
-            currentHour={currentHour}
-            currentDate={currentDate}
-            renderEventContent={other.renderEventContent}
-          />
-        )}
+
+        {isDraggingCreate && <DragCreateItem {...dragCreateItemProps} />}
       </View>
     </GestureHandlerRootView>
   );
