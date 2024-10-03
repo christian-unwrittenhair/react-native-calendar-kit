@@ -48,7 +48,7 @@ export const calculateDates = (
   for (let dayIndex = 0; dayIndex < totalDays; dayIndex++) {
     const currentUnix = minWeekDateUnix + dayIndex * SECONDS_IN_DAY;
     const dateStr = minWeekDate.clone().add(dayIndex, 'd').format('YYYY-MM-DD');
-    if (startDay === currentUnix) {
+    if (moment.unix(startDay).startOf('day').isSame(moment.unix(currentUnix).startOf('day'))) {
       if (currentUnix <= maxDateUnix) {
         day.data.push(dateStr);
       }
